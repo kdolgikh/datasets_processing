@@ -1,84 +1,78 @@
 clear
 clc
 
+header_start_line = 16;
+
 % prompt for directory
 prompt = 'Enter or copy a path to a directory with .csv \nfiles exported from OnsetDB. \nNote that path should end with "\\":\n';
 folder = input(prompt,'s');
+% folder = 'D:\GoogleDrive\!GIPL\Data\APP\datasets\2018-Copy\';
+
 
 % prompt for sensor type
 prompt = 'Enter or copy a sensor type (TMC, THB, or TMB):\n';
-sensor_type = input(prompt,'s');
+not_accepted_value = 1;
+while(not_accepted_value)
+    sensor_type = input(prompt,'s');
+    if strcmp(sensor_type,'TMC') || strcmp(sensor_type,'THB') || strcmp(sensor_type,'TMB') 
+        not_accepted_value = 0;
+    else
+        disp('#Error. Unacceptable sensor type value. Acceptable values are: TMC, THB, or TMB');
+    end
+end
 
-% folder = 'D:\GoogleDrive\!GIPL\Data\APP\datasets\2018-Copy\';
 files = dir(fullfile(folder, '*.csv'));
+
+% Save files in a new folder (modified)
+folder_modified = strcat(folder,'modified\');
+if ~exist(folder_modified,'dir')
+    mkdir(folder,'modified')
+end
+
 
 for j = 1:length(files)
     
-    opts=detectImportOptions([folder files(j).name]);
-    table=readtable([folder files(j).name],opts);
-    table(:,10)=[]; % delete column 10
-    table.Properties.VariableNames(1) = 'DATE';
-    
-    for i = 2:width(table)
-        height = num2str(table{1,i});
-        table.Properties.VariableNames(i) = strcat('Temp_',sensor_type,'_',height);
-    end
-    
-    
-    
-    table.(name).Var1{3}='site_code:'; %replace "site_name" with "site_code"
-    
-    % replace site name from Onset DB with NGEE site code:
-    % for "Council" or "CN" - "CN_MM_71"
-    % for "Kougarok" - "KG_MM_64"
-    % for "Teller Road" - "TL_MM_27" 
-    if isempty(strfind(table.(name).Var2{3},'Council')) == false
-        table.(name).Var2{3}=' "CN_MM_71" ';
-    end
-        
-    if isempty(strfind(table.(name).Var2{3},'CN')) == false
-        table.(name).Var2{3}=' "CN_MM_71" ';
-    end
-    
-    if isempty(strfind(table.(name).Var2{3},'Kougarok')) == false
-        table.(name).Var2{3}=' "KG_MM_64" ';
-    end
-    
-    if isempty(strfind(table.(name).Var2{3},'Teller')) == false
-        table.(name).Var2{3}=' "TL_MM_27" ';
-    end    
-    
-    table.(name).Var1{4}='area_code:'; %replace "site_code" with "area_code"
-    
-    table.(name)([5,6],:)=[]; % delete rows 5,6
-    
-    table.(name).Var2{10}=' "Soil temperature [°C] and moisture [VWC] data collected at multiple depths by HOBO systems located at Intensive Monitoring Stations. Data are retrieved annually." ';
-    table.(name).Var1{14}='Date'; % replace "date/time" with "Date"
+    if ~exist(fullfile(folder_modified,files(j).name),'file')
+%         opts = detectImportOptions(fullfile(folder,files(j).name));
 
-    % replace  "Temp [°C]" with "Tsoil_depth"
-    for i = 2:6
-        depth_next = table.(name){15,i};
-        table.(name){14,i}=strcat('Tsoil_',cellstr(depth_next),'m');
-    end
+        fid=fopen(fullfile(folder,files(j).name));
 
-    % replace "Water Content [N/A]" with "VWC_depth"
-    for i = 7:9
-        depth_next = table.(name){15,i};
-        table.(name){14,i}=strcat('VWC_',cellstr(depth_next),'m');
-    end
+        % From Matlab documentation:
+        % C = textscan(fileID,formatSpec,N) reads file data using the formatSpec N times,
+        % where N is a positive integer. To read additional data from the file after N cycles,
+        % call textscan again using the original fileID. If you resume a text scan of a file
+        % by calling textscan with the same file identifier (fileID), then textscan automatically
+        % resumes reading at the point where it terminated the last read.
 
-    table.(name)(15,:)=[]; % delete row 15
+        heights = textscan(fid,'%s %32f %32f %32f %32f %32f %32f %32f %32f',1,...
+        'Delimiter',',','HeaderLines',header_start_line);
 
-    % change date format
-    table_size = size(table.(name));
-    time=[];
-    for i = 15:table_size(1)
-        if strcmp(table.(name){i,1},'') == false % sometimes imported data has empty strings in the end - checking for this
-            time = datetime(table.(name){i,1},'Format','MM/dd/yyyy');  %specify original date formatting
-            table.(name){i,1}=cellstr(datestr(time,'yyyy-mm-dd'));     %change formatting and assign newly formatted date instead of original date
+        table_data = textscan(fid,'%s %s %s %s %s %s %s %s %s',...
+            'Delimiter',',');
+
+        fclose(fid);
+
+        heights{1}='Date';
+
+        for i = 2:length(heights)
+            heights{i} = generate_depth_string(heights{i});
+            heights{i}={strcat('Temp_',sensor_type,'_',heights{i})};
         end
-    end
 
-    % save modified .csv file with the same name as original file
-    writetable(table.(name),files(j).name,'WriteVariableNames',false);
+        table_data_temp=[];
+        for i=1:length(table_data)
+            table_next = table_data{1,i};
+            table_data_temp=[table_data_temp, table_next];
+        end
+
+        table_data = [heights;table_data_temp];
+        writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
+            'WriteVariableNames',false);
+    end
 end
+
+
+%% FYI: converting height string into number 
+% string = char(heights{x}), where x is an index
+% number = str2double(str(10:16)), where 10:16 positions of the
+% number's digits
