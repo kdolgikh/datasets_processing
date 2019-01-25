@@ -8,7 +8,6 @@ prompt = 'Enter or copy a path to a directory with .csv \nfiles exported from On
 folder = input(prompt,'s');
 % folder = 'D:\GoogleDrive\!GIPL\Data\APP\datasets\2018-Copy\';
 
-
 % prompt for sensor type
 prompt = 'Enter or copy a sensor type (TMC, THB, or TMB):\n';
 not_accepted_value = 1;
@@ -64,15 +63,17 @@ for j = 1:length(files)
             table_next = table_data{1,i};
             table_data_temp=[table_data_temp, table_next];
         end
-
+        
         table_data = [heights;table_data_temp];
+        
+        [table_data,files(j).name] = modify_file_name(table_data,2,files(j).name,14);
+        
         writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
             'WriteVariableNames',false);
     end
 end
 
 
-%% FYI: converting height string into number 
-% string = char(heights{x}), where x is an index
-% number = str2double(str(10:16)), where 10:16 positions of the
+%% FYI: converting height string into number
+% number = str2double(string(10:16)), where 10:16 positions of the
 % number's digits
