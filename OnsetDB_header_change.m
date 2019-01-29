@@ -51,6 +51,8 @@ disp('physical property are of the same type.');
 disp('For example, all temperature sensors are of the TMC type');
 disp(' ');
 
+dont_skip_sensor_type=1;
+
 for j = 1:length(files)
     
     if ~exist(fullfile(folder_modified,files(j).name),'file')
@@ -124,48 +126,69 @@ for j = 1:length(files)
         end
     end
     
-    disp(' ');
-    disp(['For site ',files(j).name]);
-    % prompt for sensor type
-    if snow_column
-        prompt = 'enter or copy a sensor type for "Snow_depth" columns,\nacceptable value is JDS:\n';
-        not_accepted_value = 1;
-        while(not_accepted_value)
-        sensor_type_snow = input(prompt,'s');
-            if strcmp(sensor_type_snow,'JDS')
-                not_accepted_value = 0;
-            else
-                disp('#Error. Unacceptable sensor type value. Acceptable value is JDS');
+    
+    
+    if dont_skip_sensor_type
+        disp(' ');
+        disp(['For site ',files(j).name]);
+        % prompt for sensor type
+        if snow_column
+            prompt = 'enter or copy a sensor type for "Snow_depth" columns,\nacceptable value is JDS:\n';
+            not_accepted_value = 1;
+            while(not_accepted_value)
+            sensor_type_snow = input(prompt,'s');
+                if strcmp(sensor_type_snow,'JDS')
+                    not_accepted_value = 0;
+                else
+                    disp('Error. Unacceptable sensor type value. Acceptable value is JDS');
+                end
             end
         end
-    end
 
-    if temp_column
-        prompt = 'enter or copy a sensor type for "Temp[C]" columns,\nacceptable values are TMC, THB, or TMB:\n';
-        not_accepted_value = 1;
-        while(not_accepted_value)
-            sensor_type_temp = input(prompt,'s');
-            if strcmp(sensor_type_temp,'TMC') || strcmp(sensor_type_temp,'THB') || strcmp(sensor_type_temp,'TMB') 
-                not_accepted_value = 0;
-            else
-                disp('#Error. Unacceptable sensor type value. Acceptable values are: TMC, THB, or TMB');
+        if temp_column
+            prompt = 'enter or copy a sensor type for "Temp[C]" columns,\nacceptable values are TMC, THB, or TMB:\n';
+            not_accepted_value = 1;
+            while(not_accepted_value)
+                sensor_type_temp = input(prompt,'s');
+                if strcmp(sensor_type_temp,'TMC') || strcmp(sensor_type_temp,'THB') || strcmp(sensor_type_temp,'TMB') 
+                    not_accepted_value = 0;
+                else
+                    disp('Error. Unacceptable sensor type value. Acceptable values are: TMC, THB, or TMB');
+                end
             end
         end
-    end
 
-    if water_column
-        prompt = 'enter or copy a sensor type for "Water Content" columns,\nacceptable values are SMD or SMC:\n';
-        not_accepted_value = 1;
-        while(not_accepted_value)
-            sensor_type_water = input(prompt,'s');
-            if strcmp(sensor_type_water,'SMD') || strcmp(sensor_type_water,'SMC') 
-                not_accepted_value = 0;
-            else
-                disp('#Error. Unacceptable sensor type value. Acceptable values are: SMD or SMC');
+        if water_column
+            prompt = 'enter or copy a sensor type for "Water Content" columns,\nacceptable values are SMD or SMC:\n';
+            not_accepted_value = 1;
+            while(not_accepted_value)
+                sensor_type_water = input(prompt,'s');
+                if strcmp(sensor_type_water,'SMD') || strcmp(sensor_type_water,'SMC') 
+                    not_accepted_value = 0;
+                else
+                    disp('Error. Unacceptable sensor type value. Acceptable values are: SMD or SMC');
+                end
             end
         end
+        
+        prompt = '\nAre other sensors in this directory of the same type? Answer y/n\n';
+        not_accepted_value = 1;
+        while(not_accepted_value)
+            same_sensors = input(prompt,'s');
+            if strcmp(same_sensors,'y')
+                not_accepted_value=0;
+                dont_skip_sensor_type=0;
+            else
+                if strcmp(same_sensors,'y')
+                    not_accepted_value = 0;
+                else
+                disp('Error. Unacceptable answer. Acceptable answers are: y or n');
+                end
+            end
+         end
+        
     end
-
+    
     % generate new data headers
     heights{1}='Date';
 
@@ -175,7 +198,15 @@ for j = 1:length(files)
             heights{i}={strcat('SnowDepth_',sensor_type_snow)};
         else
             if ismember(i,temp_column_pos)
-                heights{i}={strcat('Temp_',sensor_type_temp,'_',heights{i})};
+                if str2double(heights{i})>=0 && str2double(heights{i})<=0.05
+                    heights{i}={strcat('Temp_',sensor_type_temp,'_surf')};
+                else
+                    if str2double(heights{i})<=-1.2
+                        heights{i}={strcat('Temp_',sensor_type_temp,'_air')};
+                    else
+                        heights{i}={strcat('Temp_',sensor_type_temp,'_',heights{i})};
+                    end
+                end
             else
                 if ismember(i,water_column_pos)
                     heights{i}={strcat('VWC__',sensor_type_water,'_',heights{i})};
@@ -194,6 +225,8 @@ for j = 1:length(files)
 
     [table_data,files(j).name] = modify_file_name(table_data,2,files(j).name,date_position);
 
+    [table_data] = remove_NaN_columns(table_data);
+    
     writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
     'WriteVariableNames',false);
 
