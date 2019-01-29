@@ -1,9 +1,10 @@
-function [table] = remove_NaN_columns(table)
+function [table,NaN_column] = remove_NaN_columns(table)
 %This function removes columns that contain only NaNs
 %Input data should have the following format:
 %- the first column should be date
 %- the first row should be a header for data
 %With this formatting, the first data cell will be {2,2}
+% The function also returns indexes of the removed columns 
 
     table_size = size(table);
     length_dimension = 1;

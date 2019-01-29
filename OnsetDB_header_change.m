@@ -6,7 +6,10 @@ header_start_line = 16;
 % prompt for directory
 prompt = 'Enter\copy a path to a directory with .csv \nfiles exported from OnsetDB. \nNote that path should end with "\\":\n';
 folder = input(prompt,'s');
-% folder = 'D:\GoogleDrive\!GIPL\Data\APP\datasets\2018-Copy\';
+
+if ~strcmp(folder(end),'\')
+    folder=strcat(folder,'\');
+end
 
 files = dir(fullfile(folder, '*.csv'));
 
@@ -49,7 +52,6 @@ disp(' ');
 disp('For each data file, the script assumes that sensors measuring one');
 disp('physical property are of the same type.');
 disp('For example, all temperature sensors are of the TMC type');
-disp(' ');
 
 dont_skip_sensor_type=1;
 
@@ -179,7 +181,7 @@ for j = 1:length(files)
                 not_accepted_value=0;
                 dont_skip_sensor_type=0;
             else
-                if strcmp(same_sensors,'y')
+                if strcmp(same_sensors,'n')
                     not_accepted_value = 0;
                 else
                 disp('Error. Unacceptable answer. Acceptable answers are: y or n');
@@ -223,10 +225,14 @@ for j = 1:length(files)
 
     table_data = [heights;table_data_temp];
 
+    % modify file name to reflect the actual date range, also remove the
+    % first and the last rows containing all NaNs
     [table_data,files(j).name] = modify_file_name(table_data,2,files(j).name,date_position);
 
-    [table_data] = remove_NaN_columns(table_data);
+    % remove columns containing all NaNs
+    [table_data,NaN_columns] = remove_NaN_columns(table_data);
     
+    % save the file in \modified directory
     writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
     'WriteVariableNames',false);
 
