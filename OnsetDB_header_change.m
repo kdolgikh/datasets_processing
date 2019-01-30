@@ -204,10 +204,10 @@ for j = 1:length(files)
             heights{i}={strcat('SnowDepth_',sensor_type_snow)};
         else
             if ismember(i,temp_column_pos)
-                if str2double(heights{i})>=0 && str2double(heights{i})<=0.02
+                if str2double(heights{i})>=0 && str2double(heights{i})<=0.02 % any depth from 0 to 0.02 m is considered surf temp
                     heights{i}={strcat('Temp_',sensor_type_temp,'_surf')};
                 else
-                    if str2double(heights{i})<=-1.2
+                    if str2double(heights{i})<=-1.2 % any height above 1.2 meters is considerd air temp
                         heights{i}={strcat('Temp_',sensor_type_temp,'_air')};
                     else
                         heights{i}={strcat('Temp_',sensor_type_temp,'_',heights{i})};
