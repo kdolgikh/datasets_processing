@@ -4,9 +4,10 @@ clc
 header_start_line = 16;
 
 % prompt for directory
-prompt = 'Enter\copy a path to a directory with .csv \nfiles exported from OnsetDB. \nNote that path should end with "\\":\n';
+prompt = 'Enter\\copy a path to a directory with .csv \nfiles exported from OnsetDB:\n';
 folder = input(prompt,'s');
 
+% the directory should end with "\". Add "\" if it is missing
 if ~strcmp(folder(end),'\')
     folder=strcat(folder,'\');
 end
@@ -161,14 +162,17 @@ for j = 1:length(files)
         end
 
         if water_column
-            prompt = 'enter or copy a sensor type for "Water Content" columns,\nacceptable values are SMD or SMC:\n';
+            prompt = 'enter or copy a sensor type for "Water Content" columns,\nacceptable values are SMA, SMB, SMC, or SMD:\n';
             not_accepted_value = 1;
             while(not_accepted_value)
                 sensor_type_water = input(prompt,'s');
-                if strcmp(sensor_type_water,'SMD') || strcmp(sensor_type_water,'SMC') 
+                if strcmp(sensor_type_water,'SMA') ||...
+                   strcmp(sensor_type_water,'SMB') ||...
+                   strcmp(sensor_type_water,'SMC') ||...
+                   strcmp(sensor_type_water,'SMD') 
                     not_accepted_value = 0;
                 else
-                    disp('Error. Unacceptable sensor type value. Acceptable values are: SMD or SMC');
+                    disp('Error. Unacceptable sensor type value. Acceptable values are: SMA, SMB, SMC, or SMD');
                 end
             end
         end
@@ -200,7 +204,7 @@ for j = 1:length(files)
             heights{i}={strcat('SnowDepth_',sensor_type_snow)};
         else
             if ismember(i,temp_column_pos)
-                if str2double(heights{i})>=0 && str2double(heights{i})<=0.05
+                if str2double(heights{i})>=0 && str2double(heights{i})<=0.02
                     heights{i}={strcat('Temp_',sensor_type_temp,'_surf')};
                 else
                     if str2double(heights{i})<=-1.2
@@ -231,6 +235,19 @@ for j = 1:length(files)
 
     % remove columns containing all NaNs
     [table_data,NaN_columns] = remove_NaN_columns(table_data);
+    
+    if ~isempty(NaN_columns)
+        NaN_columns_str=[];
+        for i=1:length(NaN_columns)
+            column_next=num2str(NaN_columns(i));
+            NaN_columns_str=[NaN_columns_str; column_next];
+        end
+
+        disp(' ');
+        disp('The following columns containing all NaN values'); 
+        disp(['were removed from ',files(j).name]);
+        disp(NaN_columns_str);
+    end
     
     % save the file in \modified directory
     writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
