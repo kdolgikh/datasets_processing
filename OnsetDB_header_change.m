@@ -2,6 +2,7 @@ clear
 clc
 
 header_start_line = 16;
+date_start_line = 2;
 
 % prompt for directory
 prompt = 'Enter\\copy a path to a directory with .csv \nfiles exported from OnsetDB:\n';
@@ -249,7 +250,8 @@ for j = 1:length(files)
 
     % modify file name to reflect the actual date range, also remove the
     % first and the last rows containing all NaNs
-    [table_data,files(j).name] = modify_file_name(table_data,2,files(j).name,date_position);
+    [table_data,files(j).name] =...
+        modify_file_name(table_data,date_start_line,files(j).name,date_position);
 
     % remove columns containing all NaNs
     [table_data,NaN_columns] = remove_NaN_columns(table_data);

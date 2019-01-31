@@ -59,18 +59,27 @@ function [table,name] = modify_file_name(table,date_pos_in_table,name,...
     end
     
     % Check if the last row contains all NaNs and remove this row if it
-    % does. There can be only one row containing all NaNs.
+    % does. There can be several rows containing all NaNs.  
     i=1;
-    while i<table_size(width_dimension) &&... 
-            strcmp(table{table_size(length_dimension),date_column+i},'NaN')
-        i=i+1;
+    j=table_size(length_dimension);
+    while j>1
+        while i<table_size(width_dimension) &&...
+                strcmp(table{j,date_column+i},'NaN')
+            i=i+1;
+        end
+        if i<table_size(width_dimension)
+           break;
+        end
+        i=1;
+        j=j-1;
     end
     
-    if i==table_size(width_dimension)
-       table(table_size(length_dimension),:) = [];
-       table_size = size(table);
+    if j<table_size(length_dimension)
+       for k=table_size(length_dimension):-1:(j+1)
+           table(k,:) = [];
+       end
        name((date_pos_in_name+11):(date_pos_in_name+20))=...
-           table{table_size(length_dimension),date_column};
+           table{j,date_column};    % update the name
     end
 
 end
