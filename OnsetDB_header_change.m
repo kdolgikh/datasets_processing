@@ -55,6 +55,9 @@ disp('physical property are of the same type.');
 disp('For example, all temperature sensors are of the TMC type');
 
 dont_skip_sensor_type=1;
+sensor_type_temp='';
+sensor_type_water='';
+sensor_type_snow='';
 
 for j = 1:length(files)
     
@@ -71,9 +74,11 @@ for j = 1:length(files)
     % determine number of data columns
     num_columns = length(data_header);
     if num_columns > num_columns_exp
+        disp(' ');
         disp(['In ',files(j).name,', the number of columns is larger than expected']);
     else
         if num_columns < num_columns_exp
+            disp(' ');
             disp(['In ',files(j).name,', the number of columns is smaller than expected']);
         end
     end
@@ -129,7 +134,16 @@ for j = 1:length(files)
         end
     end
     
-    
+    % if skip_sensor_type is set, but incoming data has water/snow sensor
+    % for which type is not defined, then go inside "if dont_skip_sensor_type"
+    % and define this sensor
+    if dont_skip_sensor_type ==0
+       if (strcmp(sensor_type_temp,'')&&temp_column)||...
+          (strcmp(sensor_type_snow,'')&&snow_column)||...
+          (strcmp(sensor_type_water,'')&&water_column)
+            dont_skip_sensor_type=1;
+       end
+    end
     
     if dont_skip_sensor_type
         disp(' ');
@@ -204,13 +218,17 @@ for j = 1:length(files)
             heights{i}={strcat('SnowDepth_',sensor_type_snow)};
         else
             if ismember(i,temp_column_pos)
-                if str2double(heights{i})>=0 && str2double(heights{i})<=0.02 % any depth from 0 to 0.02 m is considered surf temp
+                if str2double(heights{i})>=0 && str2double(heights{i})<=0.01 && strcmp(project_abbrv,'Kskwm')
                     heights{i}={strcat('Temp_',sensor_type_temp,'_surf')};
                 else
-                    if str2double(heights{i})<=-1.2 % any height above 1.2 meters is considerd air temp
-                        heights{i}={strcat('Temp_',sensor_type_temp,'_air')};
+                    if str2double(heights{i})>=0 && str2double(heights{i})<=0.03 && ~strcmp(project_abbrv,'Kskwm')
+                        heights{i}={strcat('Temp_',sensor_type_temp,'_surf')};
                     else
-                        heights{i}={strcat('Temp_',sensor_type_temp,'_',heights{i})};
+                        if str2double(heights{i})<=-1.2
+                            heights{i}={strcat('Temp_',sensor_type_temp,'_air')};
+                        else
+                            heights{i}={strcat('Temp_',sensor_type_temp,'_',heights{i})};
+                        end
                     end
                 end
             else
