@@ -21,6 +21,8 @@ if ~exist(folder_modified,'dir')
     mkdir(folder,'modified')
 end
 
+% z=0;
+
 for j = 1:length(files)
    
     if ~exist(fullfile(folder_modified,files(j).name),'file')
@@ -60,14 +62,36 @@ for j = 1:length(files)
                 if  strcmp(data_header{i}(10),'S')
                     data_header{i}(10)='s';
                 else
-                    data_header{i}=strcat(data_header{i}(10),'00',data_header{i}(11:end));
+                    data_header{i}=strcat(data_header{i}(1:10),'00',data_header{i}(11:end));
                 end
             end
             
-            if ~strcmp(data_header{i}(end),'m')
+            if ~strcmp(data_header{i}(end),'m')&&...
+               ~strcmp(data_header{i}(10),'a')&&...
+               ~strcmp(data_header{i}(10),'s')
                 data_header{i}(end)='m';
             end
         end
+        
+        table_data_temp=[];
+        for i=1:length(table_data)
+            table_next=table_data{1,i};
+            table_data_temp=[table_data_temp, table_next];
+        end
+        
+        % This piece of code helped to determine that every file has an extra
+        % column with null character ''
+%         s=size(table_data_temp);
+%         if s(2)>length(data_header)
+%             z=z+1; %counts files with the extra column
+%         end
+        % Therefore, it is safe to remove the last column
+        table_data_temp(:,end)=[];
+        
+        table_data = [data_header;table_data_temp];
+        
+        writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
+        'WriteVariableNames',false);
         
     end
     
