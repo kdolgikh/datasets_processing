@@ -2,7 +2,7 @@ function [string] = generate_depth_string(depth)
 
     % This function uses the fact that number of digits after decimal point
     % will always be less than or equal to 2, when using data exported from
-    % VDV or OnsetDB
+    % OnsetDB and VDV
 
     num_digits_before_dp_reqd = 3;
     num_digits_after_dp_reqd = 2;

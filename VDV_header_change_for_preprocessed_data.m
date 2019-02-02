@@ -47,29 +47,30 @@ for j = 1:length(files)
         fclose(fid);
 
         data_header{1}='Date';
+        depths=zeros(1,num_columns);
+        depths_string=strings(1,num_columns);
         
         % add '+' sign for all positive depths
         for i=2:num_columns
-            if ~strcmp(data_header{i}(10),'-') &&...
-               ~strcmp(data_header{i}(10),'A') &&...
-               ~strcmp(data_header{i}(10),'S')
-                data_header{i}=strcat(data_header{i}(1:9),'+',data_header{i}(10:end));
+            if strcmp(data_header{i}(6:7),'TS')||...    % thermistor string
+                strcmp(data_header{i}(6:7),'TP')        % thermistor probe
+                data_header{i}=strcat(data_header{i}(1:6),'H',data_header{i}(7:end));
+            else
+                if strcmp(data_header{i}(6:7),'HP') % hydra probe
+                   data_header{i}=strcat(data_header{i}(1:6),'Y',data_header{i}(7:end)); 
+                end
             end
-            
+
             if strcmp(data_header{i}(10),'A')
                 data_header{i}(10)='a';
             else
                 if  strcmp(data_header{i}(10),'S')
                     data_header{i}(10)='s';
                 else
-                    data_header{i}=strcat(data_header{i}(1:10),'00',data_header{i}(11:end));
+                    depths(i)=str2double(data_header{i}(10:(end-1)));
+                    depths_string(i)=generate_depth_string(depths(i));
+                    data_header{i}=strcat(data_header{i}(1:9),depths_string(i),'m');
                 end
-            end
-            
-            if ~strcmp(data_header{i}(end),'m')&&...
-               ~strcmp(data_header{i}(10),'a')&&...
-               ~strcmp(data_header{i}(10),'s')
-                data_header{i}(end)='m';
             end
         end
         
