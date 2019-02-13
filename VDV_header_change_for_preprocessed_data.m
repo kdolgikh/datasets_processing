@@ -28,7 +28,7 @@ end
 prompt = 'Enter the name of the lookup table file:\n';
 lookup_table_name = input(prompt,'s');
 
-fid=fopen(lookup_table_name);
+fid=fopen(lookup_table_name,'r','n','UTF-8');
 lookup_t = textscan(fid,'%s %s','Delimiter',',');
 fclose(fid);
 

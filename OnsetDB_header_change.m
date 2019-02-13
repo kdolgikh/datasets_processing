@@ -21,6 +21,20 @@ if ~exist(folder_modified,'dir')
     mkdir(folder,'modified')
 end
 
+% Ask a user to provide a lookup table
+prompt = 'Enter the name of the lookup table file:\n';
+lookup_table_name = input(prompt,'s');
+
+fid=fopen(lookup_table_name,'r','n','UTF-8');
+lookup_t = textscan(fid,'%s %s','Delimiter',',');
+fclose(fid);
+
+lookup_table=[];
+for i=1:length(lookup_t)
+    table_next=lookup_t{1,i};
+    lookup_table=[lookup_table, table_next];
+end
+
 not_accepted_value = 1;
 while (not_accepted_value)
     prompt = '\nEnter a project abbreviation.\nAcceptable abreviations are APP, GIPL, TEON, USArray, and Kskwm\n';
@@ -33,12 +47,16 @@ while (not_accepted_value)
         switch(project_abbrv)
             case 'APP'
                 date_position=14;
+                name_length = 12;
             case 'GIPL'
                 date_position=5;
+                name_length = 3;
             case {'TEON','Kskwm'}
                 date_position=6;
+                name_length = 4;
             case 'USArray'
                 date_position=8;
+                name_length = 6;
         end
         not_accepted_value = 0;
     else
@@ -268,6 +286,20 @@ for j = 1:length(files)
             disp(NaN_columns_str);
         end
 
+        % when exporting with UTF-8 encoding, the first character of the
+        % name is '', we need to get rid of it.
+        % To do this, I compare lengths of the name. isempty() or strcmp()
+        % do not work when comparing with '' obtained from data
+        for i=1:length(lookup_table)
+            if length(lookup_table{1,1})>name_length
+                lookup_table{i,1}(1)=[];
+            end
+        end
+        
+        new_site_code = lookup_site_name(files(j).name(1:name_length),lookup_table);
+        
+        files(j).name = strcat(new_site_code,files(j).name((name_length+1):end));
+        
         % save the file in \modified directory
         writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
         'WriteVariableNames',false);

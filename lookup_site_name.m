@@ -5,7 +5,7 @@ function [site_name_new] = lookup_site_name(site_name_old, lookup_table)
     site_name_new = 'not_found';
     
     for i=1:length(lookup_table)
-        if strcmp(lookup_table(i,1),site_name_old)
+        if strcmp(lookup_table{i,1},site_name_old)
             site_name_new = lookup_table{i,2};
             break;
         end
