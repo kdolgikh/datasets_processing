@@ -84,226 +84,226 @@ for j = 1:length(files)
 
     if fid>0
 
-    % read lines until get to the line with column header
-    for i=1:header_start_line
-        data_header = fgetl(fid);
-    end
-    data_header = strsplit(data_header,',');
+        % read lines until get to the line with column header
+        for i=1:header_start_line
+            data_header = fgetl(fid);
+        end
+        data_header = strsplit(data_header,',');
 
-    % determine number of data columns
-    num_columns = length(data_header);
-    if num_columns > num_columns_exp
-        disp(' ');
-        disp(['In ',files(j).name,', the number of columns is larger than expected']);
-    else
-        if num_columns < num_columns_exp
+        % determine number of data columns
+        num_columns = length(data_header);
+        if num_columns > num_columns_exp
             disp(' ');
-            disp(['In ',files(j).name,', the number of columns is smaller than expected']);
-        end
-    end
-
-    % From Matlab documentation:
-    % C = textscan(fileID,formatSpec,N) reads file data using the formatSpec N times,
-    % where N is a positive integer. To read additional data from the file after N cycles,
-    % call textscan again using the original fileID. If you resume a text scan of a file
-    % by calling textscan with the same file identifier (fileID), then textscan automatically
-    % resumes reading at the point where it terminated the last read.
-
-    % create a string to be used in textscan to read depths
-    depths_string = '%s';
-    for i=1:(num_columns-1)
-        depths_string = strcat(depths_string,' %32f');
-    end
-
-    % create a string to be used in textscan to read data
-    data_string = '%s';
-    for i=1:(num_columns-1)
-        data_string = strcat(data_string,' %s');
-    end
-
-    depths = textscan(fid,depths_string,1,'Delimiter',',');
-
-    table_data = textscan(fid,data_string,'Delimiter',',');
-
-    fclose(fid);
-
-    % determine the number of columns and columns index for each
-    % physical unit
-    snow_column=0; snow_column_pos=[];
-    temp_column=0; temp_column_pos=[];
-    water_column=0; water_column_pos=[];
-    for i=2:num_columns
-        if strcmp(data_header{i},' "Snow_depth [N/A]"')
-            snow_column=snow_column+1;
-            snow_pos_next=i;
-            snow_column_pos=[snow_column_pos, snow_pos_next];
+            disp(['In ',files(j).name,', the number of columns is larger than expected']);
         else
-            if strcmp(data_header{i},' "Temp [°C]"')
-                temp_column=temp_column+1;
-                temp_pos_next=i;
-                temp_column_pos=[temp_column_pos, temp_pos_next];
+            if num_columns < num_columns_exp
+                disp(' ');
+                disp(['In ',files(j).name,', the number of columns is smaller than expected']);
+            end
+        end
+
+        % From Matlab documentation:
+        % C = textscan(fileID,formatSpec,N) reads file data using the formatSpec N times,
+        % where N is a positive integer. To read additional data from the file after N cycles,
+        % call textscan again using the original fileID. If you resume a text scan of a file
+        % by calling textscan with the same file identifier (fileID), then textscan automatically
+        % resumes reading at the point where it terminated the last read.
+
+        % create a string to be used in textscan to read depths
+        depths_string = '%s';
+        for i=1:(num_columns-1)
+            depths_string = strcat(depths_string,' %32f');
+        end
+
+        % create a string to be used in textscan to read data
+        data_string = '%s';
+        for i=1:(num_columns-1)
+            data_string = strcat(data_string,' %s');
+        end
+
+        depths = textscan(fid,depths_string,1,'Delimiter',',');
+
+        table_data = textscan(fid,data_string,'Delimiter',',');
+
+        fclose(fid);
+
+        % determine the number of columns and columns index for each
+        % physical unit
+        snow_column=0; snow_column_pos=[];
+        temp_column=0; temp_column_pos=[];
+        water_column=0; water_column_pos=[];
+        for i=2:num_columns
+            if strcmp(data_header{i},' "Snow_depth [N/A]"')
+                snow_column=snow_column+1;
+                snow_pos_next=i;
+                snow_column_pos=[snow_column_pos, snow_pos_next];
             else
-                if strcmp(data_header{i},' "Water Content [N/A]"')||...
-                        strcmp(data_header{i},' "Water Content [VWC]"')
-                    water_column=water_column+1;
-                    water_pos_next=i;
-                    water_column_pos=[water_column_pos, water_pos_next];
-                end
-            end
-        end
-    end
-
-    % if skip_sensor_type is set, but incoming data has water/snow sensor
-    % for which type is not defined, then go inside "if dont_skip_sensor_type"
-    % and define this sensor
-    if dont_skip_sensor_type ==0
-       if (strcmp(sensor_type_temp,'')&&temp_column)||...
-          (strcmp(sensor_type_snow,'')&&snow_column)||...
-          (strcmp(sensor_type_water,'')&&water_column)
-            dont_skip_sensor_type=1;
-       end
-    end
-
-    if dont_skip_sensor_type
-        disp(' ');
-        disp(['For site ',files(j).name]);
-        % prompt for sensor type
-        if snow_column
-            prompt = 'enter or copy a sensor type for "Snow_depth" columns,\nacceptable value is JDS:\n';
-            not_accepted_value = 1;
-            while(not_accepted_value)
-            sensor_type_snow = input(prompt,'s');
-                if strcmp(sensor_type_snow,'JDS')
-                    not_accepted_value = 0;
+                if strcmp(data_header{i},' "Temp [°C]"')
+                    temp_column=temp_column+1;
+                    temp_pos_next=i;
+                    temp_column_pos=[temp_column_pos, temp_pos_next];
                 else
-                    disp('Error. Unacceptable sensor type value. Acceptable value is JDS');
-                end
-            end
-        end
-
-        if temp_column
-            prompt = 'enter or copy a sensor type for "Temp[C]" columns,\nacceptable values are TMC, THB, or TMB:\n';
-            not_accepted_value = 1;
-            while(not_accepted_value)
-                sensor_type_temp = input(prompt,'s');
-                if strcmp(sensor_type_temp,'TMC') || strcmp(sensor_type_temp,'THB') || strcmp(sensor_type_temp,'TMB') 
-                    not_accepted_value = 0;
-                else
-                    disp('Error. Unacceptable sensor type value. Acceptable values are: TMC, THB, or TMB');
-                end
-            end
-        end
-
-        if water_column
-            prompt = 'enter or copy a sensor type for "Water Content" columns,\nacceptable values are SMA, SMB, SMC, or SMD:\n';
-            not_accepted_value = 1;
-            while(not_accepted_value)
-                sensor_type_water = input(prompt,'s');
-                if strcmp(sensor_type_water,'SMA') ||...
-                   strcmp(sensor_type_water,'SMB') ||...
-                   strcmp(sensor_type_water,'SMC') ||...
-                   strcmp(sensor_type_water,'SMD') 
-                    not_accepted_value = 0;
-                else
-                    disp('Error. Unacceptable sensor type value. Acceptable values are: SMA, SMB, SMC, or SMD');
-                end
-            end
-        end
-
-        prompt = '\nAre other sensors in this directory of the same type? Answer y/n\n';
-        not_accepted_value = 1;
-        while(not_accepted_value)
-            same_sensors = input(prompt,'s');
-            if strcmp(same_sensors,'y')
-                not_accepted_value=0;
-                dont_skip_sensor_type=0;
-            else
-                if strcmp(same_sensors,'n')
-                    not_accepted_value = 0;
-                else
-                disp('Error. Unacceptable answer. Acceptable answers are: y or n');
-                end
-            end
-         end
-
-    end
-
-    % generate new data headers
-    depths{1}='Date';
-
-    for i = 2:num_columns
-        depths{i} = generate_depth_string(depths{i});
-        if ismember(i,snow_column_pos)
-            depths{i}={strcat('SnowDepth_',sensor_type_snow)};
-        else
-            if ismember(i,temp_column_pos)
-                if str2double(depths{i})>=0 && str2double(depths{i})<=0.01 && strcmp(project_abbrv,'Kskwm')
-                    depths{i}={strcat('Temp_',sensor_type_temp,'_surf')};
-                else
-                    if str2double(depths{i})>=0 && str2double(depths{i})<=0.03 && ~strcmp(project_abbrv,'Kskwm')
-                        depths{i}={strcat('Temp_',sensor_type_temp,'_surf')};
-                    else
-                        if str2double(depths{i})<=-1.2
-                            depths{i}={strcat('Temp_',sensor_type_temp,'_air')};
-                        else
-                            depths{i}={strcat('Temp_',sensor_type_temp,'_',depths{i})};
-                        end
+                    if strcmp(data_header{i},' "Water Content [N/A]"')||...
+                            strcmp(data_header{i},' "Water Content [VWC]"')
+                        water_column=water_column+1;
+                        water_pos_next=i;
+                        water_column_pos=[water_column_pos, water_pos_next];
                     end
                 end
+            end
+        end
+
+        % if skip_sensor_type is set, but incoming data has water/snow sensor
+        % for which type is not defined, then go inside "if dont_skip_sensor_type"
+        % and define this sensor
+        if dont_skip_sensor_type ==0
+           if (strcmp(sensor_type_temp,'')&&temp_column)||...
+              (strcmp(sensor_type_snow,'')&&snow_column)||...
+              (strcmp(sensor_type_water,'')&&water_column)
+                dont_skip_sensor_type=1;
+           end
+        end
+
+        if dont_skip_sensor_type
+            disp(' ');
+            disp(['For site ',files(j).name]);
+            % prompt for sensor type
+            if snow_column
+                prompt = 'enter or copy a sensor type for "Snow_depth" columns,\nacceptable value is JDS:\n';
+                not_accepted_value = 1;
+                while(not_accepted_value)
+                sensor_type_snow = input(prompt,'s');
+                    if strcmp(sensor_type_snow,'JDS')
+                        not_accepted_value = 0;
+                    else
+                        disp('Error. Unacceptable sensor type value. Acceptable value is JDS');
+                    end
+                end
+            end
+
+            if temp_column
+                prompt = 'enter or copy a sensor type for "Temp[C]" columns,\nacceptable values are TMC, THB, or TMB:\n';
+                not_accepted_value = 1;
+                while(not_accepted_value)
+                    sensor_type_temp = input(prompt,'s');
+                    if strcmp(sensor_type_temp,'TMC') || strcmp(sensor_type_temp,'THB') || strcmp(sensor_type_temp,'TMB') 
+                        not_accepted_value = 0;
+                    else
+                        disp('Error. Unacceptable sensor type value. Acceptable values are: TMC, THB, or TMB');
+                    end
+                end
+            end
+
+            if water_column
+                prompt = 'enter or copy a sensor type for "Water Content" columns,\nacceptable values are SMA, SMB, SMC, or SMD:\n';
+                not_accepted_value = 1;
+                while(not_accepted_value)
+                    sensor_type_water = input(prompt,'s');
+                    if strcmp(sensor_type_water,'SMA') ||...
+                       strcmp(sensor_type_water,'SMB') ||...
+                       strcmp(sensor_type_water,'SMC') ||...
+                       strcmp(sensor_type_water,'SMD') 
+                        not_accepted_value = 0;
+                    else
+                        disp('Error. Unacceptable sensor type value. Acceptable values are: SMA, SMB, SMC, or SMD');
+                    end
+                end
+            end
+
+            prompt = '\nAre other sensors in this directory of the same type? Answer y/n\n';
+            not_accepted_value = 1;
+            while(not_accepted_value)
+                same_sensors = input(prompt,'s');
+                if strcmp(same_sensors,'y')
+                    not_accepted_value=0;
+                    dont_skip_sensor_type=0;
+                else
+                    if strcmp(same_sensors,'n')
+                        not_accepted_value = 0;
+                    else
+                    disp('Error. Unacceptable answer. Acceptable answers are: y or n');
+                    end
+                end
+             end
+
+        end
+
+        % generate new data headers
+        depths{1}='Date';
+
+        for i = 2:num_columns
+            depths{i} = generate_depth_string(depths{i});
+            if ismember(i,snow_column_pos)
+                depths{i}={strcat('SnowDepth_',sensor_type_snow)};
             else
-                if ismember(i,water_column_pos)
-                    depths{i}={strcat('VWC__',sensor_type_water,'_',depths{i})};
+                if ismember(i,temp_column_pos)
+                    if str2double(depths{i})>=0 && str2double(depths{i})<=0.01 && strcmp(project_abbrv,'Kskwm')
+                        depths{i}={strcat('Temp_',sensor_type_temp,'_surf')};
+                    else
+                        if str2double(depths{i})>=0 && str2double(depths{i})<=0.03 && ~strcmp(project_abbrv,'Kskwm')
+                            depths{i}={strcat('Temp_',sensor_type_temp,'_surf')};
+                        else
+                            if str2double(depths{i})<=-1.2
+                                depths{i}={strcat('Temp_',sensor_type_temp,'_air')};
+                            else
+                                depths{i}={strcat('Temp_',sensor_type_temp,'_',depths{i})};
+                            end
+                        end
+                    end
+                else
+                    if ismember(i,water_column_pos)
+                        depths{i}={strcat('VWC__',sensor_type_water,'_',depths{i})};
+                    end
                 end
             end
         end
-    end
 
-    table_data_temp=[];
-    for i=1:length(table_data)
-        table_next=table_data{1,i};
-        table_data_temp=[table_data_temp, table_next];
-    end
-
-    table_data = [depths;table_data_temp];
-
-    % modify file name to reflect the actual date range, also remove the
-    % first and the last rows containing all NaNs
-    [table_data,files(j).name] =...
-        modify_file_name(table_data,date_start_line,files(j).name,date_position);
-
-    % remove columns containing all NaNs
-    [table_data,NaN_columns] = remove_NaN_columns(table_data);
-
-    if ~isempty(NaN_columns)
-        NaN_columns_str=[];
-        for i=1:length(NaN_columns)
-            column_next=num2str(NaN_columns(i));
-            NaN_columns_str=[NaN_columns_str; column_next];
+        table_data_temp=[];
+        for i=1:length(table_data)
+            table_next=table_data{1,i};
+            table_data_temp=[table_data_temp, table_next];
         end
 
-        disp(' ');
-        disp('The following columns containing all NaN values'); 
-        disp(['were removed from ',files(j).name]);
-        disp(NaN_columns_str);
-    end
+        table_data = [depths;table_data_temp];
 
-    % when exporting with UTF-8 encoding, the first character of the
-    % name is '', we need to get rid of it.
-    % To do this, I compare lengths of the name. isempty() or strcmp()
-    % do not work when comparing with '' obtained from data
-    for i=1:length(lookup_table)
-        if length(lookup_table{1,1})>name_length
-            lookup_table{i,1}(1)=[];
+        % modify file name to reflect the actual date range, also remove the
+        % first and the last rows containing all NaNs
+        [table_data,files(j).name] =...
+            modify_file_name(table_data,date_start_line,files(j).name,date_position);
+
+        % remove columns containing all NaNs
+        [table_data,NaN_columns] = remove_NaN_columns(table_data);
+
+        if ~isempty(NaN_columns)
+            NaN_columns_str=[];
+            for i=1:length(NaN_columns)
+                column_next=num2str(NaN_columns(i));
+                NaN_columns_str=[NaN_columns_str; column_next];
+            end
+
+            disp(' ');
+            disp('The following columns containing all NaN values'); 
+            disp(['were removed from ',files(j).name]);
+            disp(NaN_columns_str);
         end
-    end
 
-    new_site_code = lookup_site_name(files(j).name(1:name_length),lookup_table);
+        % when exporting with UTF-8 encoding, the first character of the
+        % name is '', we need to get rid of it.
+        % To do this, I compare lengths of the name. isempty() or strcmp()
+        % do not work when comparing with '' obtained from data
+        for i=1:length(lookup_table)
+            if length(lookup_table{1,1})>name_length
+                lookup_table{i,1}(1)=[];
+            end
+        end
 
-    files(j).name = strcat(new_site_code,files(j).name((name_length+1):end));
+        new_site_code = lookup_site_name(files(j).name(1:name_length),lookup_table);
 
-    % save the file in \modified directory
-    writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
-    'WriteVariableNames',false);
+        files(j).name = strcat(new_site_code,files(j).name((name_length+1):end));
+
+        % save the file in \modified directory
+        writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
+        'WriteVariableNames',false);
 
     else
         disp(' ');
