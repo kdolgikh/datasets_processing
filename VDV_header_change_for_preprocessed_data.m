@@ -8,7 +8,7 @@ header_start_line=12;
 date_position_in_name=5;
 
 % prompt for directory
-prompt = 'Enter\\copy a path to a directory with .csv \nfiles exported from OnsetDB:\n';
+prompt = 'Enter\\copy a path to a directory with .csv \nfiles exported from VDV:\n';
 folder = input(prompt,'s');
 
 % the directory should end with "\". Add "\" if it is missing
