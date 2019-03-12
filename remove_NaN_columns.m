@@ -1,4 +1,4 @@
-function [table,NaN_column] = remove_NaN_columns(table)
+function [table,NaN_column] = remove_nan_columns(table)
 %This function removes columns that contain only NaNs
 %Input data should have the following format:
 %- the first column should be date
