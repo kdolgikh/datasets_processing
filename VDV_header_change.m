@@ -67,70 +67,48 @@ for j = 1:length(files)
         table_data = [data_header;table_data_temp];
 
         t_flag=-1; w_flag=-1; s_flag=-1; h_flag=-1;
+        column_to_remove=[];
         
-        for k=1:length(flags)
-            
+        for k=1:length(flags)    
             if find_cell_in_array(table_data(1,:),num_columns,flags(k))
                 if ~isempty(flags{k,Flags.Type})
                     switch (flags{k,Flags.Type})
                         case 'd'    % date
-                            % check consistency of dates
+                            % TODO: check consistency of dates
                         case 't'    % temperature
                             if isempty(flags{k,Flags.AlwaysUsed})
-%                                 t_flag = check_column(t_flag,flags{k,Flags.Type},flags{k},files(j).name);
-                                
-                                if t_flag==-1
-                                    t_flag = is_meas_type_reqd('t'); % this case will only be executed for HydraProbe temp
-                                end
+                                t_flag = check_column(t_flag,flags{k,Flags.Type},flags{k},files(j).name);
                                 if t_flag==0
-                                    disp(['Warning: in ',files(j).name]);
-                                    disp(['column "',flags{k},'" was removed per user request']);
-                                    disp(' ');
-                                    % mark the column to be removed
+                                   column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 'w'    % VWC
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                if w_flag==-1
-                                    w_flag = is_meas_type_reqd('w');
-                                end
+                                w_flag = check_column(w_flag,flags{k,Flags.Type},flags{k},files(j).name);
                                 if w_flag==0
-                                    disp(['Warning: in ',files(j).name]);
-                                    disp(['column "',flags{k},'" was removed per user request']);
-                                    disp(' ');
-                                    % mark the column to be removed
+                                   column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 's'    % snow depth
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                if s_flag==-1
-                                    s_flag = is_meas_type_reqd('s');
-                                end
+                                s_flag = check_column(s_flag,flags{k,Flags.Type},flags{k},files(j).name);
                                 if s_flag==0
-                                    disp(['Warning: in ',files(j).name]);
-                                    disp(['column "',flags{k},'" was removed per user request']);
-                                    disp(' ');
-                                    % mark the column to be removed
+                                   column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 'h'    % heat flux
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                if h_flag==-1
-                                    h_flag = is_meas_type_reqd('h');
-                                end
+                                h_flag = check_column(h_flag,flags{k,Flags.Type},flags{k},files(j).name);
                                 if h_flag==0
-                                    disp(['Warning: in ',files(j).name]);
-                                    disp(['column "',flags{k},'" was removed per user request']);
-                                    disp(' ');
-                                    % mark the column to be removed
+                                   column_to_remove=[column_to_remove;k];
                                 end
                             end
                     end
                 else
                     disp(['Warning: in ',files(j).name]);
-                    disp(['Unnecessary column "',flags{k},'" was removed']);
+                    disp(['unnecessary column "',flags{k},'" was removed']);
                     disp(' ');
-                    % mark the column to be removed
+                    column_to_remove=[column_to_remove;k];
                 end
             else
                 if ~isempty(flags{k,Flags.Type})
@@ -138,10 +116,12 @@ for j = 1:length(files)
                     disp(['column "',flags{k},'" is missing. Check input data']);
                 end
             end
-       
         end
        
-        % remove columns here
+        % remove columns marked for removal
+        for i=length(column_to_remove):-1:1
+            table_data(:,column_to_remove(i))=[];
+        end
         
 %         for i=1:length(table_data_temp)
 %            for k=1:num_columns

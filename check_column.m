@@ -1,5 +1,5 @@
 function [flag]=check_column(flag,measure_type,column_name,filename)
-%This function helps making code more readable
+%This function helps making code more readable by hiding repeated actions
 
     if flag==-1
         flag = is_meas_type_reqd(measure_type);
