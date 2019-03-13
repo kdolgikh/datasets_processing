@@ -12,7 +12,8 @@ function [answer] = is_meas_type_reqd(measurement_type)
         case 'h'
             measurement_type = 'heat flux';
     end
-            
+    
+    disp(' ');
     accepted_val = 0;        
     while ~accepted_val
         prompt = ['Is measurement type "',measurement_type,'" required\nin this data set? Answer y/n \n'];

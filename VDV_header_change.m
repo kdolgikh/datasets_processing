@@ -31,6 +31,40 @@ if ~exist(folder_modified,'dir')
     mkdir(folder,'modified')
 end
 
+disp(' ');
+accepted_val = 0;        
+while ~accepted_val
+    prompt = 'Notify when unnecessary column is removed? Answer y/n\n';
+    notify_flag = input(prompt,'s');
+    if strcmp(notify_flag,'y') || strcmp(notify_flag,'n')
+       accepted_val=1; 
+    end
+end
+
+switch(notify_flag)
+    case 'y'
+        notify_flag=1;
+    case 'n'
+        notify_flag=0;
+end
+
+disp(' ');
+accepted_val = 0;        
+while ~accepted_val
+    prompt = 'Notify when column with a specific measurement\ntype is removed? Answer y/n\n';
+    notify_flag2 = input(prompt,'s');
+    if strcmp(notify_flag2,'y') || strcmp(notify_flag2,'n')
+       accepted_val=1; 
+    end
+end
+
+switch(notify_flag2)
+    case 'y'
+        notify_flag2=1;
+    case 'n'
+        notify_flag2=0;
+end
+
 for j = 1:length(files)
        
     errmsg='';
@@ -83,41 +117,48 @@ for j = 1:length(files)
                             % TODO: check consistency of dates
                         case 't'    % temperature
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                t_flag = check_column(t_flag,flags{k,Flags.Type},flags{k},files(j).name);
+                                t_flag = check_column(t_flag,flags{k,Flags.Type},...
+                                            flags{k},files(j).name,notify_flag2);
                                 if t_flag==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 'w'    % VWC
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                w_flag = check_column(w_flag,flags{k,Flags.Type},flags{k},files(j).name);
+                                w_flag = check_column(w_flag,flags{k,Flags.Type},...
+                                            flags{k},files(j).name,notify_flag2);
                                 if w_flag==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 's'    % snow depth
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                s_flag = check_column(s_flag,flags{k,Flags.Type},flags{k},files(j).name);
+                                s_flag = check_column(s_flag,flags{k,Flags.Type},...
+                                            flags{k},files(j).name,notify_flag2);
                                 if s_flag==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 'h'    % heat flux
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                h_flag = check_column(h_flag,flags{k,Flags.Type},flags{k},files(j).name);
+                                h_flag = check_column(h_flag,flags{k,Flags.Type},...
+                                            flags{k},files(j).name,notify_flag2);
                                 if h_flag==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                     end
                 else
-                    disp(['Warning: in ',files(j).name]);
-                    disp(['unnecessary column "',flags{k},'" was removed']);
-                    disp(' ');
                     column_to_remove=[column_to_remove;k];
+                    if notify_flag
+                        disp(' ');
+                        disp(['Warning: in ',files(j).name]);
+                        disp(['unnecessary column "',flags{k},'" was removed']);
+                    end
                 end
             else
                 if ~isempty(flags{k,Flags.Type})
+                    disp(' ');
                     disp(['Warning: in ',files(j).name]);
                     disp(['column "',flags{k},'" is missing. Check input data']);
                 end
@@ -137,7 +178,9 @@ for j = 1:length(files)
         
         % remove columns with all NaNs
         table_data = remove_nan_columns(table_data,files(j).name);
-       
+        
+        
+        % 
         
         
 %         writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
