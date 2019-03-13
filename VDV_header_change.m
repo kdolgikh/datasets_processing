@@ -7,6 +7,13 @@ old_codes_lookup_table = load_lookup_table('sites_old_code_lookup.csv');
 
 header_start_line=7;
 
+% If flags are moved inside the j = 1:length(files) loop,
+% then question to include a specific measurement type into a dataset
+% will be asked for every file.
+% When these flags are initialized outside the loop (as below), such
+% question will be asked only once.
+t_flag=-1; w_flag=-1; s_flag=-1; h_flag=-1;
+
 % prompt for directory
 prompt = 'Enter\\copy a path to a directory with .csv \nfiles exported from VDV:\n';
 folder = input(prompt,'s');
@@ -66,7 +73,6 @@ for j = 1:length(files)
         
         table_data = [data_header;table_data_temp];
 
-        t_flag=-1; w_flag=-1; s_flag=-1; h_flag=-1;
         column_to_remove=[];
         
         for k=1:length(flags)    
