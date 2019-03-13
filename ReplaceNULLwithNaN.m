@@ -1,6 +1,9 @@
 clear
 clc
 
+% Used this script to replace NULLs with NaNs in preprocessed VDV data.
+% It won't be used in the future.
+
 header_start_line=1;
 
 % prompt for directory
