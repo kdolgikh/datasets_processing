@@ -272,20 +272,7 @@ for j = 1:length(files)
             modify_file_name(table_data,date_start_line,files(j).name,date_position);
 
         % remove columns containing all NaNs
-        [table_data,NaN_columns] = remove_NaN_columns(table_data);
-
-        if ~isempty(NaN_columns)
-            NaN_columns_str=[];
-            for i=1:length(NaN_columns)
-                column_next=num2str(NaN_columns(i));
-                NaN_columns_str=[NaN_columns_str; column_next];
-            end
-
-            disp(' ');
-            disp('The following columns containing all NaN values'); 
-            disp(['were removed from ',files(j).name]);
-            disp(NaN_columns_str);
-        end
+        table_data = remove_NaN_columns(table_data,files(j).name);
 
         % when exporting with UTF-8 encoding, the first character of the
         % name is '', we need to get rid of it.

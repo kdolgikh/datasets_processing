@@ -1,4 +1,4 @@
-function [table,NaN_column] = remove_nan_columns(table)
+function [table] = remove_nan_columns(table,filename)
 %This function removes columns that contain only NaNs
 %Input data should have the following format:
 %- the first column should be date
@@ -26,6 +26,13 @@ function [table,NaN_column] = remove_nan_columns(table)
     % remove columns with all NaNs
     for i=length(NaN_column):-1:1
         table(:,NaN_column(i))=[];
+    end
+    
+    if ~isempty(NaN_column)
+        disp(' ');
+        disp('The following columns containing all NaN values'); 
+        disp(['were removed from ',filename]);
+        disp(num2str(NaN_column));
     end
 
 end

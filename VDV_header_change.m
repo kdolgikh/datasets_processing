@@ -129,14 +129,15 @@ for j = 1:length(files)
             table_data(:,column_to_remove(i))=[];
         end
         
-%         for i=1:length(table_data_temp)
-%            for k=1:num_columns
-%                if strcmp(table_data_temp{i,k},'NULL')
-%                   table_data_temp{i,k}='NaN'; 
-%                end
-%            end 
-%         end
-
+        % update num_columns
+        num_columns=num_columns-length(column_to_remove);
+        
+        % replace NULL with NaN
+        table_data = replace_null_with_nan(table_data,num_columns);
+        
+        % remove columns with all NaNs
+        table_data = remove_nan_columns(table_data,files(j).name);
+       
         
         
 %         writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
