@@ -5,5 +5,6 @@ classdef Flags < uint8
         Type (3)
         Sensor (4)
         AlwaysUsed (5)
+        FileNumber (6)
     end
 end

@@ -167,16 +167,17 @@ for j = 1:length(files)
         if dont_skip_sensor_type
             disp(' ');
             disp(['For site ',files(j).name]);
+            
             % prompt for sensor type
             if snow_column
-                prompt = 'enter or copy a sensor type for "Snow_depth" columns,\nacceptable value is JDS:\n';
+                prompt = 'enter or copy a sensor type for "Snow_depth" columns,\nacceptable value is JUDS:\n';
                 not_accepted_value = 1;
                 while(not_accepted_value)
                 sensor_type_snow = input(prompt,'s');
-                    if strcmp(sensor_type_snow,'JDS')
+                    if strcmp(sensor_type_snow,'JUDS')
                         not_accepted_value = 0;
                     else
-                        disp('Error. Unacceptable sensor type value. Acceptable value is JDS');
+                        disp('Error. Unacceptable sensor type value. Acceptable value is JUDS');
                     end
                 end
             end
@@ -229,12 +230,12 @@ for j = 1:length(files)
         end
 
         % generate new data headers
-        depths{1}='Date';
+        depths{1}='Timestamp';
 
         for i = 2:num_columns
             depths{i} = generate_depth_string(depths{i});
             if ismember(i,snow_column_pos)
-                depths{i}={strcat('SnowDepth_',sensor_type_snow)};
+                depths{i}={strcat('SnwD_',sensor_type_snow)};
             else
                 if ismember(i,temp_column_pos)
                     if str2double(depths{i})>=0 && str2double(depths{i})<=0.01 && strcmp(project_abbrv,'Kskwm')
@@ -272,7 +273,7 @@ for j = 1:length(files)
             modify_file_name(table_data,date_start_line,files(j).name,date_position);
 
         % remove columns containing all NaNs
-        table_data = remove_NaN_columns(table_data,files(j).name);
+        [table_data,~] = remove_NaN_columns(table_data,files(j).name);
 
         % when exporting with UTF-8 encoding, the first character of the
         % name is '', we need to get rid of it.

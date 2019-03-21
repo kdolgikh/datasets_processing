@@ -28,7 +28,19 @@ for j = 1:length(files)
     
     if fid>0
         
-        hfile=textscan(fid,'%s %s %s %s %s','Delimiter',',');
+        % determine number of columns in hfile
+        hfile_header = fgetl(fid);
+        hfile_header = strsplit(hfile_header,',');
+        num_columns = length(hfile_header);
+        
+        % set the number of columns to read by defining a data_string
+        data_string = '%s';
+        for i=1:(num_columns-1)
+            data_string = strcat(data_string,' %s');
+        end
+        
+        % get data whithout the header row
+        hfile=textscan(fid,data_string,'Delimiter',',');
         fclose(fid);
         
         h_file=[];
@@ -36,8 +48,6 @@ for j = 1:length(files)
             hfile_next=hfile{1,i};
             h_file=[h_file, hfile_next];
         end
-        
-       h_file(1,:)=[]; % remove the header row since we will not need it
         
         site_code=lookup_site_name(files(j).name(1:(end-num_csv_chars)),lookup_table);
         

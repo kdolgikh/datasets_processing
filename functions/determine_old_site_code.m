@@ -1,5 +1,6 @@
-function [old_site_code] = determine_old_site_code(filename,lookup_table)
-% This function determines a site code  from VDV filename
+function [old_site_code, averaging] = determine_old_site_code(filename,lookup_table)
+% This function determines a site code  from VDV filename and returns an
+% averaging type used when the file has been created.
 % VDV has five averaging types: hour, day, week, month, and year.
 % It also hase a very specific date format.
 % These two factors are used to determine the number of characters that
@@ -21,20 +22,26 @@ function [old_site_code] = determine_old_site_code(filename,lookup_table)
     
     if strcmp(filename(end-6:end-num_csv_chars),'our')
         stop_index=stop_index-9;
+        averaging=AveragingType.Hour;
     else
         if strcmp(filename(end-6:end-num_csv_chars),'day')
             stop_index=stop_index-8;
+            averaging=AveragingType.Day;
         else
             if strcmp(filename(end-6:end-num_csv_chars),'eek')
                 stop_index=stop_index-9;
+                averaging=AveragingType.Week;
             else
                 if strcmp(filename(end-6:end-num_csv_chars),'nth')
                     stop_index=stop_index-10;
+                    averaging=AveragingType.Month;
                 else
                     if strcmp(filename(end-6:end-num_csv_chars),'ear')
                         stop_index=stop_index-9;
+                        averaging=AveragingType.Year;
                     else % no averaging (RAW) 
                         stop_index=stop_index-num_csv_chars;
+                        averaging=AveragingType.Raw;
                     end
                 end
             end

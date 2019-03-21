@@ -19,7 +19,9 @@ function [answer] = is_meas_type_reqd(measurement_type)
         prompt = ['Is measurement type "',measurement_type,'" required\nin this data set? Answer y/n \n'];
         answer = input(prompt,'s');
         if strcmp(answer,'y') || strcmp(answer,'n')
-           accepted_val=1; 
+           accepted_val=1;
+        else
+            disp('Error: unacceptable answer. Acceptable answers are: y or n')
         end
     end
     

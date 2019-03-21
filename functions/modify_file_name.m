@@ -1,6 +1,6 @@
 function [table,name] = modify_file_name(table,date_pos_in_table,name,...
     date_pos_in_name)
-% This function checks the first and the last date of the data and changes
+% This function checks the first and the last dates of the data and changes
 % the name to be consistent with actual dates. It also removes all
 % NaNs row for the first/last date in the data.
 % The function assumes that date will always be in the first column.
