@@ -1,8 +1,9 @@
 function reorder_columns(flags,filename)
-%This function reorders columns in the table according to the provided
-%order.
-%Air temperature always goes first, followed by surface temperature
-%regardless of the sensor type.
+%This function reorders columns, containing data from specific sensors.
+%Ordering uses an order_value, which increases by 1 after each assignment.
+%This value is passed to several functions, which find sensors of the
+%specific type in the flags file. Therefore, the columns order is defined
+%by the order in which these functions go.
 
     % value of the order, which increases by 1 after each assignment
     order_value=1;
@@ -23,79 +24,29 @@ function reorder_columns(flags,filename)
     index_order(1,Sorting.Order)=order_value;
     order_value=order_value+1;
     
-    % determine row indices for air  and surf temperature(s) measurements
-    ind_flgs_a=find_air_surf_temp(flags,'a',filename);
-    ind_flgs_s=find_air_surf_temp(flags,'s',filename);
+    % determine row indices for air  and surf temperature sensors
+    ind_flgs_a=find_air_surf_sensors(flags,'a',filename);
+    ind_flgs_s=find_air_surf_sensors(flags,'s',filename);
     
-    % assign order to air and surf measurements
-    % see "Order" Google Sheet
-    if isempty(ind_flgs_a) && isempty(ind_flgs_s) % case 1
-        % do nothing
-    else
-        if isempty(ind_flgs_a) && length(ind_flgs_s)==1 % case 2
-            index_order(ind_flgs_s,Sorting.Order)=order_value;
-            order_value=order_value+1;
-        else
-            if isempty(ind_flgs_a) && length(ind_flgs_s)==2 % case 3
-                index_order(ind_flgs_s(1),Sorting.Order)=order_value;
-                order_value=order_value+1;
-                index_order(ind_flgs_s(2),Sorting.Order)=order_value;
-                order_value=order_value+1;
-            else
-                if length(ind_flgs_a)==1 && isempty(ind_flgs_s) % case 4
-                    index_order(ind_flgs_a,Sorting.Order)=order_value;
-                    order_value=order_value+1;
-                else
-                    if length(ind_flgs_a)==1 && length(ind_flgs_s)==1 % case 5
-                        index_order(ind_flgs_a,Sorting.Order)=order_value;
-                        order_value=order_value+1;
-                        index_order(ind_flgs_s,Sorting.Order)=order_value;
-                        order_value=order_value+1;
-                    else
-                        if length(ind_flgs_a)==1 && length(ind_flgs_s)==2 % case 6
-                            index_order(ind_flgs_a,Sorting.Order)=order_value;
-                            order_value=order_value+1;
-                            index_order(ind_flgs_s(1),Sorting.Order)=order_value;
-                            order_value=order_value+1;
-                            index_order(ind_flgs_s(2),Sorting.Order)=order_value;
-                            order_value=order_value+1;
-                        else
-                            if length(ind_flgs_a)==2 && isempty(ind_flgs_s) % case 7
-                                index_order(ind_flgs_a(1),Sorting.Order)=order_value;
-                                order_value=order_value+1;
-                                index_order(ind_flgs_a(2),Sorting.Order)=order_value;
-                                order_value=order_value+1;
-                            else
-                                if length(ind_flgs_a)==2 && length(ind_flgs_s)==1 % case 8
-                                    index_order(ind_flgs_a(1),Sorting.Order)=order_value;
-                                    order_value=order_value+1;
-                                    index_order(ind_flgs_a(2),Sorting.Order)=order_value;
-                                    order_value=order_value+1;
-                                    index_order(ind_flgs_s,Sorting.Order)=order_value;
-                                    order_value=order_value+1;
-                                else
-                                    if length(ind_flgs_a)==2 && length(ind_flgs_s)==2 % case 9
-                                        index_order(ind_flgs_a(1),Sorting.Order)=order_value;
-                                        order_value=order_value+1;
-                                        index_order(ind_flgs_a(2),Sorting.Order)=order_value;
-                                        order_value=order_value+1;
-                                        index_order(ind_flgs_s(1),Sorting.Order)=order_value;
-                                        order_value=order_value+1;
-                                        index_order(ind_flgs_s(2),Sorting.Order)=order_value;
-                                        order_value=order_value+1;
-                                    end
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
+    % assign order to air and surf sensors
+    [order_value,index_order]=...
+        order_air_surf_sensors(order_value,index_order,ind_flgs_a,ind_flgs_s);
     
+    % assign order to MRC/THP sensors. Each file can have either MRC or THP
+    % sensor, but not both.
+    [order_value,index_order]=order_MRC_THP_sensors(order_value,index_order,flags);
     
+    %assign order to 107 sensors
+    [order_value,index_order]=order_107_109_THS_HYP_sensors(order_value,index_order,flags,'107');
     
+    %assign order to 109 sensors
+    [order_value,index_order]=order_107_109_THS_HYP_sensors(order_value,index_order,flags,'109');
     
+    %assign order to THS sensors
+    [order_value,index_order]=order_107_109_THS_HYP_sensors(order_value,index_order,flags,'THS');
+    
+    %assign order to HYP temperature sensors
+    [order_value,index_order]=order_107_109_THS_HYP_sensors(order_value,index_order,flags,'HYP');
 
 end
 

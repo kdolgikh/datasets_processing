@@ -150,6 +150,7 @@ for j = 1:length(files)
 %         flag_w=-1; % VWC flag
 %         flag_s=-1; % snow depth flag
 %         flag_h=-1; % heat flux flag
+        
         column_to_remove=[];
         
         for k=1:length(flags)    

@@ -1,5 +1,5 @@
 function [sensor_row_ind] = ...
-    find_air_surf_temp(flags,sensor_type,filename)
+    find_air_surf_sensors(flags,sensor_type,filename)
 %This function determines the number and indeces of air or surface
 %temperature measurements in the flags table
 
