@@ -3,12 +3,18 @@ clc
 
 load('sites_flags_struct.mat');
 sites_flags_fn=fieldnames(sites_flags);
-old_codes_lookup_table = load_lookup_table('sites_old_code_lookup.csv');
+old_codes_lookup_table = load_lookup_table('vdv_sites_old_code_lookup.csv');
+new_codes_lookup_table = load_lookup_table('VDV_GIPL_SiteCodes_Lookup_Table.csv');
 
 header_start_line=7; % header in exported data starts at line 7
-date_start_line=2; % the row in which date starts for !processed! data
-date_position_in_name=12; % index of the first date character for a !processed! site name
-average_length=9; % number of chars in [average]
+% date_start_line=2; % the row in which date starts for !processed! data
+% date_position_in_name=12; % index of the first date character for a !processed! site name
+
+num_chars_average=9; % number of chars in [average]
+num_char_csv=4;
+num_char_day=3;  % number of chars in day
+num_chars_hwy=4; % number of chars in hour/week/year
+num_chars_month=5; % number of chars in month
 
 % If flags are moved inside the j = 1:length(files) loop,
 % then question to include a specific measurement type into a dataset
@@ -118,11 +124,24 @@ for j = 1:length(files)
         % remove [average] from all column headers
         if averaging>1 % for any averaging type
             for i=2:num_columns % exclude the timestamp column from loop
-                data_header{i}=data_header{i}(1:end-average_length);
+                data_header{i}=data_header{i}(1:end-num_chars_average);
             end
         end
         
+        % remove averaging type from a filename
+        switch averaging
+            case AveragingType.Day
+                files(j).name((end-num_char_csv-num_char_day):(end-num_char_csv)) = [];
+            case AveragingType.Hour
+            case AveragingType.Year
+            case AveragingType.Week
+                files(j).name((end-num_char_csv-num_chars_hwy):(end-num_char_csv)) = [];
+            case AveragingType.Month
+                files(j).name((end-num_char_csv-num_chars_month):(end-num_char_csv)) = [];
+            case AveragingType.Raw
+        end
         
+        % create a data table with a header
         table_data = [data_header;table_data_temp];
 
 % Uncomment if you want the question to include a specific measurement type
@@ -213,26 +232,17 @@ for j = 1:length(files)
         num_columns=num_columns-length(NaN_columns);
         
         % change headers
-        [table_data]=modify_vdv_headers(old_site_code,table_data,num_columns,flags);
+        [table_data,flag_split_data]=modify_vdv_headers(old_site_code,table_data,num_columns,flags);
         
         % split files if required
-        
-        % reorder columns
-        
-        % change filename:
-        % 1) replace an old site code with a new site code
-        
-        
-        % 2) verify dates, remove NaN rows in the beginning/end, and update
-        % the name
-%         [table_data,files(j).name] =...
-%             modify_file_name(table_data,date_start_line,files(j).name,date_position_in_name);
-        
-        %save file
-%         writetable(cell2table(table_data),fullfile(folder_modified,files(j).name),...
-%         'WriteVariableNames',false);
+        if flag_split_data
+            split_data(table_data,flags,old_site_code,new_codes_lookup_table,...
+                       folder_modified,files(j).name,averaging);
+        else
+            site_code=lookup_site_name(old_site_code,new_codes_lookup_table);
+            modify_filename_and_save(table_data,flags,site_code,folder_modified,files(j).name,averaging);
+        end
 
-        
     else
         disp(' ');
         disp(errmsg);

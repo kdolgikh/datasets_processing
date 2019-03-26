@@ -3,7 +3,6 @@ function [table,name] = modify_file_name(table,date_pos_in_table,name,...
 % This function checks the first and the last dates of the data and changes
 % the name to be consistent with actual dates. It also removes all
 % NaNs row for the first/last date in the data.
-% The function assumes that date will always be in the first column.
 % It also uses the following positions of the start/end date start and end
 % characters, which is always true for data exported from OnsetDB and VDV:
 % date_pos_in_name+9  : position of the last char in the first date

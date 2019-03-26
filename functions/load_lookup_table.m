@@ -14,10 +14,14 @@ function [lookup_table] = load_lookup_table(lookup_table_name)
             lookup_table=[lookup_table, table_next];
         end
         
-        % when exporting with UTF-8 encoding, the first character is '',
-        % we need to remove it
-        lookup_table{1,1}(1)=[];
-        
+        % when exporting with UTF-8 encoding, the first character may be '',
+        % we need to remove it.
+        % Warning! Because of this check, value in lookup
+        % table should start with a letter only!
+        if ~isletter(lookup_table{1,1}(1))
+            lookup_table{1,1}(1)=[];
+        end
+            
     else
         disp(' ');
         disp(errmsg);

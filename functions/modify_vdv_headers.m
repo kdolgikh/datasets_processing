@@ -1,4 +1,4 @@
-function [table] = modify_vdv_headers(site_code,table,num_columns,flags)
+function [table,split_required] = modify_vdv_headers(site_code,table,num_columns,flags)
 %This function modifies vdv headers according to the GIPL standard
 %Inputs:
 %site_code
@@ -8,12 +8,16 @@ function [table] = modify_vdv_headers(site_code,table,num_columns,flags)
 %site's h-file.
 %Output:
 %table - the data table with modified headers
+%split_required - a flag that shows that some files have to be splitted in
+%two files
 
     % if heave was set for a probe, then don't need to ask the user again
     % to enter heave. Ask, however, if it is the second probe
     heave_set_flag = 0;
     heave=0;
 
+    split_required=0;
+    
     % determine the data set year from the last timestamp
     dataset_year=str2double(table{end,1}(1:4));
     
@@ -31,7 +35,10 @@ function [table] = modify_vdv_headers(site_code,table,num_columns,flags)
                                                      str2double(flags(i,Flags.OriginalDepth)),...
                                                      heave, heave_set_flag,...
                                                      str2double(flags(i,Flags.FileNumber)));
-                        table{1,i}=strcat('Temp_',flags(i,Flags.Sensor),'_',depth,'m');  
+                        table{1,i}=strcat('Temp_',flags(i,Flags.Sensor),'_',depth,'m');
+                        if ~isnan((str2double(flags(i,Flags.FileNumber)))) && ~split_required
+                            split_required=1;
+                        end
                     end
                 end                            
            else % for all other temp sensors
