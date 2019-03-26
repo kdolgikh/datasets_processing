@@ -1,6 +1,6 @@
-classdef SensorOrder < uint8
+classdef SensorTypes <uint8
     enumeration
-        Temp (1)
+        tempHYP (1)
         VWC (2)
         SnwD (3)
         HtFx (4)

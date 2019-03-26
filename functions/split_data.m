@@ -1,4 +1,6 @@
-function split_data(table,flags,old_site_code,site_code_lookup_table,folder,filename,averaging_type)
+function split_data(table,flags,old_site_code,...
+                    site_code_lookup_table,folder,...
+                    filename,averaging_type,used_sensors)
 %This function split a table into two tables using info from flags,
 %then assignes new site codes and filenames, and saves the files
     
@@ -29,8 +31,10 @@ function split_data(table,flags,old_site_code,site_code_lookup_table,folder,file
     site_code2=site_code;
     site_code2(end)='2';
     
-    modify_filename_and_save(table1,flags1,site_code1,folder,filename,averaging_type);
-    modify_filename_and_save(table2,flags2,site_code2,folder,filename,averaging_type);
+    modify_filename_and_save(table1,flags1,site_code1,folder,...
+                             filename,averaging_type,used_sensors);
+    modify_filename_and_save(table2,flags2,site_code2,folder,...
+                             filename,averaging_type,used_sensors);
 
 end
 

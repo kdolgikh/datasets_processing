@@ -16,15 +16,16 @@ num_char_day=3;  % number of chars in day
 num_chars_hwy=4; % number of chars in hour/week/year
 num_chars_month=5; % number of chars in month
 
-% If flags are moved inside the j = 1:length(files) loop,
+% If "sensors_used" flags are moved inside the j = 1:length(files) loop,
 % then question to include a specific measurement type into a dataset
 % will be asked for every file.
 % When these flags are initialized outside the loop (as below), such
 % question will be asked only once.
-flag_t=-1; % HydraProbe temperature flag
-flag_w=-1; % VWC flag
-flag_s=-1; % snow depth flag
-flag_h=-1; % heat flux flag
+% sensors_used(1) - HydraProbe temperature flag
+% sensors_used(2) -  VWC flag
+% sensors_used(3) - snow depth flag
+% sensors_used(4) - heat flux flag
+sensors_used=[-1,-1,-1,-1];
 
 % prompt for directory
 prompt = 'Enter\\copy a path to a directory with .csv \nfiles exported from VDV:\n';
@@ -146,10 +147,7 @@ for j = 1:length(files)
 
 % Uncomment if you want the question to include a specific measurement type
 % to be asked for each file.
-%         flag_t=-1; % HydraProbe temperature flag
-%         flag_w=-1; % VWC flag
-%         flag_s=-1; % snow depth flag
-%         flag_h=-1; % heat flux flag
+% sensors_used=[-1,-1,-1,-1];
         
         column_to_remove=[];
         
@@ -161,33 +159,41 @@ for j = 1:length(files)
                             % TODO: check consistency of dates
                         case 't'    % temperature
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                flag_t = check_column(flag_t,flags{k,Flags.Type},...
-                                            flags{k},files(j).name,notify_flag2);
-                                if flag_t==0
+                                sensors_used(SensorTypes.tempHYP) = check_column(sensors_used(SensorTypes.tempHYP),...
+                                                                                 flags{k,Flags.Type},...
+                                                                                 flags{k},files(j).name,...
+                                                                                 notify_flag2);
+                                if sensors_used(SensorTypes.tempHYP)==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 'w'    % VWC
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                flag_w = check_column(flag_w,flags{k,Flags.Type},...
-                                            flags{k},files(j).name,notify_flag2);
-                                if flag_w==0
+                                sensors_used(SensorTypes.VWC) = check_column(sensors_used(SensorTypes.VWC),...
+                                                                             flags{k,Flags.Type},...
+                                                                             flags{k},files(j).name,...
+                                                                             notify_flag2);
+                                if sensors_used(SensorTypes.VWC)==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 's'    % snow depth
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                flag_s = check_column(flag_s,flags{k,Flags.Type},...
-                                            flags{k},files(j).name,notify_flag2);
-                                if flag_s==0
+                                sensors_used(SensorTypes.SnwD) = check_column(sensors_used(SensorTypes.SnwD),...
+                                                                              flags{k,Flags.Type},...
+                                                                              flags{k},files(j).name,...
+                                                                              notify_flag2);
+                                if sensors_used(SensorTypes.SnwD)==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
                         case 'h'    % heat flux
                             if isempty(flags{k,Flags.AlwaysUsed})
-                                flag_h = check_column(flag_h,flags{k,Flags.Type},...
-                                            flags{k},files(j).name,notify_flag2);
-                                if flag_h==0
+                                sensors_used(SensorTypes.HtFx) = check_column(sensors_used(SensorTypes.HtFx),...
+                                                                              flags{k,Flags.Type},...
+                                                                              flags{k},files(j).name,...
+                                                                              notify_flag2);
+                                if sensors_used(SensorTypes.HtFx)==0
                                    column_to_remove=[column_to_remove;k];
                                 end
                             end
@@ -238,10 +244,12 @@ for j = 1:length(files)
         % split files if required
         if flag_split_data
             split_data(table_data,flags,old_site_code,new_codes_lookup_table,...
-                       folder_modified,files(j).name,averaging);
+                       folder_modified,files(j).name,averaging,sensors_used);
         else
             site_code=lookup_site_name(old_site_code,new_codes_lookup_table);
-            modify_filename_and_save(table_data,flags,site_code,folder_modified,files(j).name,averaging);
+            modify_filename_and_save(table_data,flags,site_code,...
+                                     folder_modified,files(j).name,...
+                                     averaging,sensors_used);
         end
 
     else

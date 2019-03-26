@@ -1,4 +1,6 @@
-function modify_filename_and_save(table,flags,site_code,folder,filename,averaging_type)
+function modify_filename_and_save(table,flags,site_code,...
+                                  folder,filename,averaging_type,...
+                                  used_sensors)
 %This function assignes a new site code, checks consistency of dates in the
 %filename and inside the table, reorders columns, and saves the file.
 
@@ -32,7 +34,7 @@ function modify_filename_and_save(table,flags,site_code,folder,filename,averagin
     [table,filename]=modify_file_name(table,date_row_in_table,filename,date_position_in_name);
     
     % reorder columns
-    reorder_columns(flags,filename);
+    reorder_columns(flags,filename,used_sensors);
     
     %save the file
     writetable(cell2table(table),fullfile(folder,filename),...
