@@ -1,4 +1,4 @@
-function reorder_columns(flags,filename,used_sensors)
+function [table_sorted]=reorder_columns(table,flags,filename,used_sensors)
 %This function reorders columns, containing data from specific sensors.
 %Ordering uses an order_value, which increases by 1 after each assignment.
 %This value is passed to several functions, which find sensors of the
@@ -96,6 +96,9 @@ function reorder_columns(flags,filename,used_sensors)
     end
     
     % create a file with ordered columns
+    for i=1:length(flags)
+        table_sorted(:,index_order(i,Sorting.Order)) = table(:,i);
+    end
     
 end
 
