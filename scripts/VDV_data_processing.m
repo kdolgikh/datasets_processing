@@ -156,7 +156,7 @@ for j = 1:length(files)
                 if ~isempty(flags{k,Flags.Type})
                     switch (flags{k,Flags.Type})
                         case 'd'    % date
-                            % TODO: check consistency of dates
+                            check_dates_consistency(table_data(2:end,1),averaging,files(j).name); % dates is always column #1, and the first row is always "Timestamp"
                         case 't'    % temperature
                             if isempty(flags{k,Flags.AlwaysUsed})
                                 sensors_used(SensorTypes.tempHYP) = check_column(sensors_used(SensorTypes.tempHYP),...
