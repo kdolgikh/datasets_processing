@@ -4,6 +4,7 @@ function check_dates_consistency(dates_column,averaging_type,filename)
 %user. Currently, this function will only work for Day averaging
 %as the averaging type of most interest for the lab.
 
+    header_start_line=7; % header in exported data starts at line 7
     do_not_execute=0;
 
     % for Raw and Hour measurements, measurement rate may vary from once
@@ -47,7 +48,7 @@ function check_dates_consistency(dates_column,averaging_type,filename)
            disp(' ');
            disp(['Warning! In ',filename,',']);
            disp('the following rows have inconsistent dates');
-           disp(num2str(inconsistent_date_index));
+           disp(num2str(inconsistent_date_index+header_start_line));
         end
     
     end

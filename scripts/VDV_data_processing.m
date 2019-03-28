@@ -243,8 +243,12 @@ for j = 1:length(files)
         
         % split files if required
         if flag_split_data
-            split_data(table_data,flags,old_site_code,new_codes_lookup_table,...
-                       folder_modified,files(j).name,averaging,sensors_used);
+            % determine the number of files
+            num_files=max(str2double(flags(:,Flags.FileNumber)));
+            for i=1:num_files
+                split_data(i,table_data,flags,old_site_code,new_codes_lookup_table,...
+                           folder_modified,files(j).name,averaging,sensors_used); 
+            end
         else
             site_code=lookup_site_name(old_site_code,new_codes_lookup_table);
             modify_reorder_and_save_table(table_data,flags,site_code,...
