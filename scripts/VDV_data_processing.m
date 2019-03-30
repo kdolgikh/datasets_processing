@@ -119,10 +119,29 @@ for j = 1:length(files)
         
         [old_site_code, averaging] = determine_old_site_code(files(j).name,old_codes_lookup_table);
         
-        for i=1:length(sites_flags_fn)
-           if strcmp(old_site_code,sites_flags_fn{i})
-               flags=sites_flags.(sites_flags_fn{i});
-           end
+        % Imnaviat site is different from all other sites. When the new MRC was
+        % installed in 2017, variables from the old MRC were reused.
+        % However, thermistor installation depths are different for the new MRC.
+        % Additionally, the last two thermistors(variables) are not used on
+        % the new MRC. Therefore, for datasets prior 2017, the special
+        % flags file is loaded and used. One should be careful and not
+        % use data that combine data obtained with both the old and the new
+        % MRCs. The old MRC data ended on Jan 05, 2017. The new MRC data
+        % starts on Aug 23, 2017.
+        if ~strcmp(old_site_code,'IM1')
+            for i=1:length(sites_flags_fn)
+               if strcmp(old_site_code,sites_flags_fn{i})
+                   flags=sites_flags.(sites_flags_fn{i});
+               end
+            end
+        else
+            dataset_year=str2double(table_data_temp{end,1}(1:4));
+            if dataset_year>2017
+                flags=sites_flags.IM1;
+            else
+                load('sites_flags_struct_IM.mat');
+                flags=sites_flags_IM.IM1;
+            end
         end
         
         % remove [average] from all column headers
