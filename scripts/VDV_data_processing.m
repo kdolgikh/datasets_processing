@@ -6,9 +6,8 @@ sites_flags_fn=fieldnames(sites_flags);
 old_codes_lookup_table = load_lookup_table('vdv_sites_old_code_lookup.csv');
 new_codes_lookup_table = load_lookup_table('VDV_GIPL_SiteCodes_Lookup_Table.csv');
 
+global header_start_line;
 header_start_line=7; % header in exported data starts at line 7
-% date_start_line=2; % the row in which date starts for !processed! data
-% date_position_in_name=12; % index of the first date character for a !processed! site name
 
 num_chars_average=9; % number of chars in [average]
 num_char_csv=4;
@@ -179,7 +178,10 @@ for j = 1:length(files)
                 if ~isempty(flags{k,Flags.Type})
                     switch (flags{k,Flags.Type})
                         case 'd'    % date
-                            check_dates_consistency(table_data(2:end,1),averaging,files(j).name); % dates is always column #1, and the first row is always "Timestamp"
+                            % Currently, dates consistency is only checked for daily averaged data
+                            if averaging==AveragingType.Day
+                                table_data=check_dates_consistency(table_data,averaging,files(j).name);
+                            end
                         case 't'    % temperature
                             if isempty(flags{k,Flags.AlwaysUsed})
                                 sensors_used(SensorTypes.tempHYP) = check_column(sensors_used(SensorTypes.tempHYP),...
