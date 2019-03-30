@@ -13,13 +13,13 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
     
     % boil is always 1, interboil is always 2
     if file_number==1
-        prompt = ['For ',site_code,'_boil, enter heave in cm measured in ',num2str(dataset_year-1),':\n'];
+        prompt = ['For ',site_code,'_boil, enter heave in m measured in ',num2str(dataset_year-1),':\n'];
     else
         if file_number==2
-            prompt = ['For ',site_code,'_interboil, enter heave in cm measured in ',num2str(dataset_year-1),':\n'];
+            prompt = ['For ',site_code,'_interboil, enter heave in m measured in ',num2str(dataset_year-1),':\n'];
         else
             if isnan(file_number)
-                prompt = ['For ',site_code,', enter heave in cm measured in ',num2str(dataset_year-1),':\n'];
+                prompt = ['For ',site_code,', enter heave in m measured in ',num2str(dataset_year-1),':\n'];
             end
         end
     end
@@ -30,20 +30,28 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
         accepted_value = 0;
         while ~accepted_value
             disp(' ');
-            heave = input(prompt)/100; % convert into meters
-            if heave >=0 && heave <=1
+            heave = input(prompt);
+            if heave >=-0.3 && heave <=1
                 accepted_value=1;
                 heave_set = ~heave_set; % flip the value
             else
-                disp('Error. Heave value should be between 0 to 100 cm\n');
+                disp('Error. Heave value should be between -0.3 to 1 meter\n');
             end
         end
     end
 
-    if ~strcmp(site_code,'WD1')
-        depth = install_depth - heave;
+    if strcmp(site_code,'DH1')
+        depth = round((install_depth-(heave-0.18)),2);
     else
-        depth = install_depth-(heave-0.185);
+        if strcmp(site_code,'FB1')
+            depth = round((install_depth-(heave-0.145)),2);
+        else
+            if strcmp(site_code,'WD1')
+                depth = round((install_depth-(heave-0.185)),2);
+            else
+                depth = round((install_depth - heave),2);
+            end
+        end
     end
 
     % return depth as a string of format +/-XXX.XX

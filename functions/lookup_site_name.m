@@ -2,9 +2,12 @@ function [site_name_new] = lookup_site_name(site_name_old, lookup_table)
 % This functions looks for a pair old name - new name and returns the new
 % name value
 
+    length_dim = 1;
     site_name_new = 'not_found';
     
-    for i=1:length(lookup_table)
+    lookup_t_dim=size(lookup_table);
+    
+    for i=1:lookup_t_dim(length_dim)
         if strcmp(lookup_table{i,1},site_name_old)
             site_name_new = lookup_table{i,2};
             break;

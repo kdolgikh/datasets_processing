@@ -5,20 +5,23 @@ function [table_sorted]=reorder_columns(table,flags,filename,used_sensors)
 %specific type in the flags file. Therefore, the columns order is defined
 %by the order in which these functions go.
 
+    global length_dim;
+    flags_dim=size(flags);
+
     % value of the order, which increases by 1 after each assignment
     order_value=1;
 
     all_sensors=find_all_sensors(flags,filename);
     
     % create increasing indices for the table
-    table_index = zeros(length(flags),1);
+    table_index = zeros(flags_dim(length_dim),1);
     table_index(1)=1;
-    for i=2:length(flags)
+    for i=2:flags_dim(length_dim)
         table_index(i)=table_index(i-1)+1;
     end
     
     % create an order array, which will be populated with sensors order
-    order = zeros(length(flags),1);
+    order = zeros(flags_dim(length_dim),1);
     % concatenate table_index and order arrays
     index_order = cat(2,table_index,order);
     
@@ -90,13 +93,18 @@ function [table_sorted]=reorder_columns(table,flags,filename,used_sensors)
         [order_value,index_order]=order_sensors(order_value,index_order,flags,snow_sensor,'s');
     end
     
-    if used_sensors(SensorTypes.HtFx)==1 &&...
-       all_sensors(Sensors.N_A)==1
-        [order_value,index_order]=order_sensors(order_value,index_order,flags,'N/A','h');
+    if used_sensors(SensorTypes.HtFx)==1
+       if all_sensors(Sensors.HF1)==1
+        [order_value,index_order]=order_sensors(order_value,index_order,flags,'HF1','h');
+       else
+           if all_sensors(Sensors.HF3)==1
+               [order_value,index_order]=order_sensors(order_value,index_order,flags,'HF3','h');
+           end
+       end
     end
     
     % create a file with ordered columns
-    for i=1:length(flags)
+    for i=1:flags_dim(length_dim)
         table_sorted(:,index_order(i,Sorting.Order)) = table(:,i);
     end
     

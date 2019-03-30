@@ -61,7 +61,7 @@ function [table,split_required] = modify_vdv_headers(site_code,table,num_columns
                table{1,i}=strcat('VWC__',flags(i,Flags.Sensor),'_',depth,'m');
            else
                if strcmp(flags(i,Flags.Type),'s')
-                   table{1,i}=strcat('SnwD_',flags(i,Flags.Sensor),'_m');
+                   table{1,i}=strcat('SnwD_',flags(i,Flags.Sensor));
                else
                    if strcmp(flags(i,Flags.Type),'h')
                        table{1,i}=strcat('HtFx_',flags(i,Flags.Sensor));

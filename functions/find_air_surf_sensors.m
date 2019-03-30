@@ -3,6 +3,8 @@ function [sensor_row_ind] = ...
 %This function determines the number and indeces of air or surface
 %temperature measurements in the flags table
 
+    global length_dim;
+
     if strcmp(sensor_type,'a')
         sensor='air';
     else
@@ -15,9 +17,11 @@ function [sensor_row_ind] = ...
         end
     end
     
+    flags_dim=size(flags);
+    
     sensor_row_ind=[];
     j=1;
-    for i=2:length(flags)
+    for i=2:flags_dim(length_dim)
        if strcmp(flags(i,Flags.OriginalDepth),sensor_type)
             sensor_row_ind(j)=i;
             j=j+1;

@@ -4,7 +4,10 @@ function split_data(file_number,table,flags,old_site_code,...
 %This function removes data that do not belong to the file,
 %then assignes a new site code and a filename, and saves the file
     
-    for i=length(flags):-1:2 % skip Timestamp column
+    global length_dim;  
+    flags_dim=size(flags);
+
+    for i=flags_dim(length_dim):-1:2 % skip Timestamp column
         if ~strcmp(flags(i,Flags.FileNumber),num2str(file_number))
            table(:,i)=[];
            flags(i,:)=[];

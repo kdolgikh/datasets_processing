@@ -11,9 +11,12 @@ function [order_value,indices_order]=...
 %Warning! This function should not be used for a snow depth sensor, since
 %there is now depth information associated with it
 
+    global length_dim;  
+    flags_dim=size(flags);
+
     sensor_index=[];
     sensor_depth=[];
-    for i=1:length(flags)
+    for i=1:flags_dim(length_dim)
         if strcmp(flags(i,Flags.Sensor),sensor) &&...
            ~(strcmp(flags(i,Flags.OriginalDepth),'a') || strcmp(flags(i,Flags.OriginalDepth),'s')) &&...
            strcmp(flags(i,Flags.Type),sensor_type)

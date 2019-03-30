@@ -9,6 +9,7 @@ classdef Sensors <uint8
         JUDS (7)
         SR50 (8)
         SR5A (9)
-        N_A (10) % heat flux sensor type is unknown
+        HF1 (10)
+        HF3 (11)
     end
 end

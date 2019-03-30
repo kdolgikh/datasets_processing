@@ -16,6 +16,9 @@ num_char_day=3;  % number of chars in day
 num_chars_hwy=4; % number of chars in hour/week/year
 num_chars_month=5; % number of chars in month
 
+global length_dim;   % length dimension of a table (number of rows)
+length_dim=1;
+
 % If "sensors_used" flags are moved inside the j = 1:length(files) loop,
 % then question to include a specific measurement type into a dataset
 % will be asked for every file.
@@ -116,7 +119,7 @@ for j = 1:length(files)
         
         [old_site_code, averaging] = determine_old_site_code(files(j).name,old_codes_lookup_table);
         
-        for i=1:length(files)
+        for i=1:length(sites_flags_fn)
            if strcmp(old_site_code,sites_flags_fn{i})
                flags=sites_flags.(sites_flags_fn{i});
            end
@@ -149,9 +152,10 @@ for j = 1:length(files)
 % to be asked for each file.
 % sensors_used=[-1,-1,-1,-1];
         
+        flags_dim=size(flags);
         column_to_remove=[];
         
-        for k=1:length(flags)    
+        for k=1:flags_dim(length_dim)  
             if find_cell_in_array(table_data(1,:),num_columns,flags(k))
                 if ~isempty(flags{k,Flags.Type})
                     switch (flags{k,Flags.Type})

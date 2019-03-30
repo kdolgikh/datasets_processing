@@ -8,7 +8,8 @@ function [lookup_table] = load_lookup_table(lookup_table_name)
     
     if fid >0      
         lookup_t = textscan(fid,'%s %s','Delimiter',',');
-        fclose(fid);      
+        fclose(fid);
+        
         for i=1:length(lookup_t)
             table_next=lookup_t{1,i};
             lookup_table=[lookup_table, table_next];
