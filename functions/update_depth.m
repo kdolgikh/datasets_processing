@@ -31,7 +31,7 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
         while ~accepted_value
             disp(' ');
             heave = input(prompt);
-            if heave >=-0.3 && heave <=1
+            if heave >=-0.4 && heave <=1
                 accepted_value=1;
                 heave_set = ~heave_set; % flip the value
             else

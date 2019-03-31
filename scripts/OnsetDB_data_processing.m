@@ -273,7 +273,7 @@ for j = 1:length(files)
             modify_file_name(table_data,date_start_line,files(j).name,date_position);
 
         % remove columns containing all NaNs
-        [table_data,~] = remove_NaN_columns(table_data,files(j).name);
+        [table_data,~] = remove_nan_columns(table_data,files(j).name);
 
         % when exporting with UTF-8 encoding, the first character of the
         % name is '', we need to get rid of it.
