@@ -287,3 +287,10 @@ for j = 1:length(files)
     end
    
 end
+
+% create a table with file names
+names_list=transpose(struct2cell(files));
+names_table=cell2table(names_list(1:end,1));
+
+writetable(names_table,fullfile(folder_modified,'!GIPL_FileNames_List.csv'),...
+'WriteVariableNames',false);

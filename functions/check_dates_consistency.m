@@ -57,10 +57,11 @@ function [table] = check_dates_consistency(table,averaging_type,filename)
            disp(['Warning! In ',filename,',']);
            disp('the following rows have inconsistent dates');
            disp(num2str(inconsistent_date_index+header_start_line));
+           table=pad_missing_dates_and_data(table,dates_column_datetime,...
+                                            inconsistent_date_index,meas_rate);
         end
         
-        table=pad_missing_dates_and_data(table,dates_column_datetime,...
-                                         inconsistent_date_index,meas_rate);
+
     
     end
 

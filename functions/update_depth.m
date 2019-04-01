@@ -12,17 +12,27 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
 %depth - updated depth
     
     % boil is always 1, interboil is always 2
-    if file_number==1
-        prompt = ['For ',site_code,'_boil, enter heave in m measured in ',num2str(dataset_year-1),':\n'];
+    if file_number==1 && ~strcmp(site_code,'IV4')
+        subcode='_boil';
     else
-        if file_number==2
-            prompt = ['For ',site_code,'_interboil, enter heave in m measured in ',num2str(dataset_year-1),':\n'];
+        if file_number==1 && strcmp(site_code,'IV4')
+            subcode='_North';
         else
-            if isnan(file_number)
-                prompt = ['For ',site_code,', enter heave in m measured in ',num2str(dataset_year-1),':\n'];
+            if file_number==2 && ~strcmp(site_code,'IV4')
+                subcode='_interboil';
+            else
+                if file_number==2 && strcmp(site_code,'IV4')
+                    subcode='_South';
+                else   
+                    if isnan(file_number)
+                        subcode='';
+                    end
+                end
             end
         end
     end
+    
+    prompt = ['For ',site_code,subcode,' enter heave in m measured in ',num2str(dataset_year-1),':\n'];
     
     if (~heave_set && file_number==1) ||...
             (heave_set && file_number ==2) ||...
