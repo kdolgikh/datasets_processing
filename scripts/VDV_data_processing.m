@@ -140,6 +140,9 @@ for j = 1:length(files)
             else
                 load('sites_flags_struct_IM.mat');
                 flags=sites_flags_IM.IM1;
+                disp(' ');
+                disp('For IM1 site, h-file with information on the'); 
+                disp('old MRC probe is going to be used');
             end
         end
         
