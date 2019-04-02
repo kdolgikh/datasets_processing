@@ -13,7 +13,7 @@ function [table,split_required] = modify_vdv_headers(site_code,table,num_columns
 
     % if heave was set for a probe, then don't need to ask the user again
     % to enter heave. Ask, however, if it is the second probe
-    heave_set_flag = 0;
+    heave_set_flag = [0,0,0];
     heave=0;
 
     split_required=0;

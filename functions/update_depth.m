@@ -34,16 +34,31 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
     
     prompt = ['For ',site_code,subcode,' enter heave in m measured in ',num2str(dataset_year-1),':\n'];
     
-    if (~heave_set && file_number==1) ||...
-            (heave_set && file_number ==2) ||...
-            (~heave_set && isnan(file_number))
+    if (~heave_set(HeaveSet.File1) && file_number==1) ||...
+            (~heave_set(HeaveSet.File2) && file_number==2) ||...
+            (~heave_set(HeaveSet.File3) && file_number==3) ||...
+            (all(heave_set)==0 && isnan(file_number))
         accepted_value = 0;
         while ~accepted_value
             disp(' ');
             heave = input(prompt);
             if heave >=-0.4 && heave <=1
                 accepted_value=1;
-                heave_set = ~heave_set; % flip the value
+                if file_number==1
+                    heave_set(HeaveSet.File1)=1;
+                else
+                    if file_number==2
+                        heave_set(HeaveSet.File2)=1;
+                    else
+                        if file_number==3
+                            heave_set(HeaveSet.File3)=1;
+                        else
+                            if isnan(file_number)
+                                heave_set=[1,1,1];
+                            end
+                        end
+                    end
+                end
             else
                 disp('Error. Heave value should be between -0.3 to 1 meter\n');
             end
