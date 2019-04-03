@@ -247,13 +247,13 @@ for j = 1:length(files)
                             if str2double(depths{i})<=-1.2
                                 depths{i}={strcat('Temp_',sensor_type_temp,'_air')};
                             else
-                                depths{i}={strcat('Temp_',sensor_type_temp,'_',depths{i})};
+                                depths{i}={strcat('Temp_',sensor_type_temp,'_',depths{i},'m')};
                             end
                         end
                     end
                 else
                     if ismember(i,water_column_pos)
-                        depths{i}={strcat('VWC__',sensor_type_water,'_',depths{i})};
+                        depths{i}={strcat('VWC__',sensor_type_water,'_',depths{i},'m')};
                     end
                 end
             end
