@@ -1,4 +1,4 @@
-function modify_reorder_and_save_table(table,flags,site_code,...
+function [filename]=modify_reorder_and_save_table(table,flags,site_code,...
                                   folder,filename,averaging_type,...
                                   used_sensors)
 %This function assignes a new site code, checks consistency of dates in the
@@ -33,8 +33,18 @@ function modify_reorder_and_save_table(table,flags,site_code,...
     
     % check that dates in the filename and inside the table are consistent,
     % update the filename if not.
-    [table,filename]=modify_file_name(table,date_row_in_table,filename,date_position_in_name);
-    
+    if averaging_type==AveragingType.Raw ||...
+       averaging_type==AveragingType.Hour ||...
+       averaging_type==AveragingType.Day
+        [table,filename]=modify_file_name(table,date_row_in_table,filename,date_position_in_name);
+    else
+        disp(' ');
+        disp('Warning: because of the averaging type (week, month, or year) used in')
+        disp(filename);
+        disp(', the name of the file will not be updated');
+        disp('to reflect actual dates contained inside the file.');
+        disp('Please, do this manually');
+    end
     % reorder columns
     table_sorted = reorder_columns(table,flags,filename,used_sensors);
     

@@ -83,6 +83,9 @@ switch(notify_flag2)
         notify_flag2=0;
 end
 
+files_to_remove=[];
+filenames=[];
+
 for j = 1:length(files)
        
     errmsg='';
@@ -174,9 +177,9 @@ for j = 1:length(files)
         % create a data table with a header
         table_data = [data_header;table_data_temp];
 
-% Uncomment if you want the question to include a specific measurement type
-% to be asked for each file.
-% sensors_used=[-1,-1,-1,-1];
+        % Uncomment if you want the question to include a specific measurement type
+        % to be asked for each file.
+        % sensors_used=[-1,-1,-1,-1];
         
         flags_dim=size(flags);
         column_to_remove=[];
@@ -248,45 +251,57 @@ for j = 1:length(files)
             end
         end
        
-        % remove columns marked for removal in both data and flags
-        for i=length(column_to_remove):-1:1
-            table_data(:,column_to_remove(i))=[];
-            flags(column_to_remove(i),:)=[]; % flags variables are transposed
-        end
-        
-        % update num_columns
-        num_columns=num_columns-length(column_to_remove);
-        
-        % replace NULL with NaN
-        table_data=replace_null_with_nan(table_data,num_columns);
-        
-        % remove columns with all NaNs
-        [table_data,NaN_columns]=remove_nan_columns(table_data,files(j).name);
-        
-        % remove flags columns corresponding to all NaNs columns
-        for i=length(NaN_columns):-1:1
-            flags(NaN_columns(i),:)=[]; % flags variables are transposed
-        end
-        
-        % update num_columns
-        num_columns=num_columns-length(NaN_columns);
-        
-        % change headers
-        [table_data,flag_split_data]=modify_vdv_headers(old_site_code,table_data,num_columns,flags);
-        
-        % split files if required
-        if flag_split_data
-            % determine the number of files
-            num_files=max(str2double(flags(:,Flags.FileNumber)));
-            for i=1:num_files
-                split_data(i,table_data,flags,old_site_code,new_codes_lookup_table,...
-                           folder_modified,files(j).name,averaging,sensors_used); 
+        if ~isempty(column_to_remove) % empty means that only valid VDV variables were exported
+            
+            % remove columns marked for removal in both data and flags
+            for i=length(column_to_remove):-1:1
+                table_data(:,column_to_remove(i))=[];
+                flags(column_to_remove(i),:)=[]; % flags variables are transposed
             end
+
+            % update num_columns
+            num_columns=num_columns-length(column_to_remove);
+
+            % replace NULL with NaN
+            table_data=replace_null_with_nan(table_data,num_columns);
+
+            % remove columns with all NaNs
+            [table_data,NaN_columns]=remove_nan_columns(table_data,files(j).name);
+
+            % remove flags columns corresponding to all NaNs columns
+            for i=length(NaN_columns):-1:1
+                flags(NaN_columns(i),:)=[]; % flags variables are transposed
+            end
+
+            % update num_columns
+            num_columns=num_columns-length(NaN_columns);
+
+            % change headers
+            [table_data,flag_split_data]=modify_vdv_headers(old_site_code,table_data,num_columns,flags);
+
+            % split files if required
+            if flag_split_data
+                % determine the number of files
+                num_files=max(str2double(flags(:,Flags.FileNumber)));
+                for i=1:num_files
+                    new_filename=split_data(i,table_data,flags,old_site_code,new_codes_lookup_table,...
+                               folder_modified,files(j).name,averaging,sensors_used);
+                    filenames=[filenames;cellstr(new_filename)];
+                end
+            else
+                site_code=lookup_site_name(old_site_code,new_codes_lookup_table);
+                new_filename=modify_reorder_and_save_table(table_data,flags,site_code,...
+                                         folder_modified,files(j).name,...
+                                         averaging,sensors_used);
+                filenames=[filenames;cellstr(new_filename)];
+            end
+        
         else
-            site_code=lookup_site_name(old_site_code,new_codes_lookup_table);
-            modify_reorder_and_save_table(table_data,flags,site_code,...
-                                     folder_modified,files(j).name,...
-                                     averaging,sensors_used);
+            disp(' ');
+            disp(['Warning: in ',files(j).name,',']);
+            disp('not all variables have been exported from VDV.');
+            disp('To work properly, this script requires all variables to be exported.');
+            disp('Therefore, this file will not be processed');
         end
 
     else
@@ -296,9 +311,7 @@ for j = 1:length(files)
    
 end
 
-% create a table with file names
-names_list=transpose(struct2cell(files));
-names_table=cell2table(names_list(1:end,1));
-
-writetable(names_table,fullfile(folder_modified,'!GIPL_FileNames_List.csv'),...
-'WriteVariableNames',false);
+if ~isempty(filenames)
+    writetable(cell2table(filenames),fullfile(folder_modified,'!GIPL_FileNames_List.csv'),...
+    'WriteVariableNames',false);
+end
