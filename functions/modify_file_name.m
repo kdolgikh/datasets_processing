@@ -15,14 +15,16 @@ function [table,name] = modify_file_name(table,date_pos_in_table,name,...
     
     table_size = size(table);
     date_column = 1;
+    date_start_index=1; % beginning of the date
+    date_stop_index=10; % end of the date
     length_dimension = 1;
     width_dimension = 2;
     
     % Find the first date and compare it with the first date in name
-    if ~strcmp(table{date_pos_in_table,date_column},...
+    if ~strcmp(table{date_pos_in_table,date_column}(date_start_index:date_stop_index),...
             name(date_pos_in_name:(date_pos_in_name+9)))
        name(date_pos_in_name:(date_pos_in_name+9))=...
-           table{date_pos_in_table,date_column};
+           table{date_pos_in_table,date_column}(date_start_index:date_stop_index);
     end
     
     % Check if the first row contains all NaNs and remove this row if it
@@ -51,10 +53,10 @@ function [table,name] = modify_file_name(table,date_pos_in_table,name,...
     end
     
     % Find the last date and compare it with the last date in name
-    if ~strcmp(table{table_size(1),date_column},...
+    if ~strcmp(table{table_size(1),date_column}(date_start_index:date_stop_index),...
             name((date_pos_in_name+11):(date_pos_in_name+20)))
        name((date_pos_in_name+11):(date_pos_in_name+20))=...
-           table{table_size(length_dimension),date_column};
+           table{table_size(length_dimension),date_column}(date_start_index:date_stop_index);
     end
     
     % Check if the last row contains all NaNs and remove this row if it

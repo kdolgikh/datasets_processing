@@ -21,6 +21,8 @@ function modify_reorder_and_save_table(table,flags,site_code,...
             filename_ending='_weekly';
         case AveragingType.Month
             filename_ending='_monthly';
+        case AveragingType.Raw
+            filename_ending='';
     end
     
     %retrieve the part of the filename containing dates

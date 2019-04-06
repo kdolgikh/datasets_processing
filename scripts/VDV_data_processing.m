@@ -7,7 +7,6 @@ old_codes_lookup_table = load_lookup_table('vdv_sites_old_code_lookup.csv');
 new_codes_lookup_table = load_lookup_table('VDV_GIPL_SiteCodes_Lookup_Table.csv');
 
 global header_start_line;
-header_start_line=7; % header in exported data starts at line 7
 
 num_chars_average=9; % number of chars in [average]
 num_char_csv=4;
@@ -91,6 +90,14 @@ for j = 1:length(files)
 
     if fid>0
 
+        [old_site_code, averaging] = determine_old_site_code(files(j).name,old_codes_lookup_table);
+        
+        if averaging == AveragingType.Raw
+            header_start_line=6; % header in raw data starts at line 6
+        else
+            header_start_line=7; % header in averaged data starts at line 7
+        end
+        
         % read lines until get to the line with column header
         for i=1:header_start_line
             data_header = fgetl(fid);
@@ -114,9 +121,7 @@ for j = 1:length(files)
             table_data_temp=[table_data_temp, table_next];
         end
         
-        table_data_temp(:,end)=[];
-        
-        [old_site_code, averaging] = determine_old_site_code(files(j).name,old_codes_lookup_table);
+        table_data_temp(:,end)=[];       
         
         % Imnaviat site is different from all other sites. When the new MRC was
         % installed in 2017, variables from the old MRC were reused.
