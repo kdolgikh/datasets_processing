@@ -37,6 +37,13 @@ if ~strcmp(folder(end),'\')
     folder=strcat(folder,'\');
 end
 
+% log everything from the command window into a text file
+log_name_date=date;
+log_name=strcat(log_name_date,'_VDV_data_processing_log.txt');
+dname = fullfile(folder,log_name);
+diary(dname);
+diary on
+
 files = dir(fullfile(folder, '*.csv'));
 
 % Save files in a new folder (modified)
@@ -315,3 +322,5 @@ if ~isempty(filenames)
     writetable(cell2table(filenames),fullfile(folder_modified,'!GIPL_FileNames_List.csv'),...
     'WriteVariableNames',false);
 end
+
+diary off

@@ -21,11 +21,44 @@ if ~exist(folder_modified,'dir')
     mkdir(folder,'modified')
 end
 
-% Ask a user to provide a lookup table
-prompt = 'Enter the name of the lookup table file:\n';
-lookup_table_name = input(prompt,'s');
+not_accepted_value = 1;
+while (not_accepted_value)
+    prompt = '\nEnter a project abbreviation.\nAcceptable abreviations are APP, GIPL, TEON, USAR, and CBOP\n';
+    project_abbrv = input(prompt,'s');
+    if strcmp(project_abbrv,'APP')||...
+            strcmp(project_abbrv,'GIPL')||...
+            strcmp(project_abbrv,'TEON')||...
+            strcmp(project_abbrv,'USAR')||...
+            strcmp(project_abbrv,'CBOP')
+        switch(project_abbrv)
+            case 'APP'
+                date_position=14;
+                name_length = 12;
+            case 'GIPL'
+                date_position=5;
+                name_length = 3;
+            case {'TEON','CBOP'}
+                date_position=6;
+                name_length = 4;
+            case 'USAR'
+                date_position=8;
+                name_length = 6;
+        end
+        not_accepted_value = 0;
+    else
+        disp('Not acceptable abbreviation. Acceptable abbreviations are APP, GIPL, TEON, USAR, and CBOP');
+    end
+end
 
-fid=fopen(lookup_table_name,'r','n','UTF-8');
+% log everything from the command window into a text file
+log_name_date=date;
+log_name=strcat(log_name_date,'_',project_abbrv,'_log.txt');
+dname = fullfile(folder,log_name);
+diary(dname);
+diary on
+
+% a single lookup table is used
+fid=fopen('hobo_site_codes_lookup.csv','r','n','UTF-8');
 lookup_t = textscan(fid,'%s %s','Delimiter',',');
 fclose(fid);
 
@@ -35,42 +68,23 @@ for i=1:length(lookup_t)
     lookup_table=[lookup_table, table_next];
 end
 
-not_accepted_value = 1;
-while (not_accepted_value)
-    prompt = '\nEnter a project abbreviation.\nAcceptable abreviations are APP, GIPL, TEON, USArray, and Kskwm\n';
-    project_abbrv = input(prompt,'s');
-    if strcmp(project_abbrv,'APP')||...
-            strcmp(project_abbrv,'GIPL')||...
-            strcmp(project_abbrv,'TEON')||...
-            strcmp(project_abbrv,'USArray')||...
-            strcmp(project_abbrv,'Kskwm')
-        switch(project_abbrv)
-            case 'APP'
-                date_position=14;
-                name_length = 12;
-            case 'GIPL'
-                date_position=5;
-                name_length = 3;
-            case {'TEON','Kskwm'}
-                date_position=6;
-                name_length = 4;
-            case 'USArray'
-                date_position=8;
-                name_length = 6;
-        end
-        not_accepted_value = 0;
-    else
-        disp('Not acceptable abbreviation. Acceptable abbreviations are APP, GIPL, TEON, USArray, and Kskwm');
+% when exporting with UTF-8 encoding, the first character of the
+% name is '', we need to get rid of it.
+% To do this, I compare lengths of the name. isempty() or strcmp()
+% do not work when comparing with '' obtained from data
+for i=1:length(lookup_table)
+    if length(lookup_table{1,1})>name_length
+        lookup_table{i,1}(1)=[];
     end
 end
 
 prompt = '\nEnter the expected number of columns for the files in this directory\n';
 num_columns_exp = input(prompt);
 
-disp(' ');
-disp('For each data file, the script assumes that sensors measuring one');
-disp('physical property are of the same type.');
-disp('For example, all temperature sensors are of the TMC type');
+% disp(' ');
+% disp('For each data file, the script assumes that sensors measuring one');
+% disp('physical property are of the same type.');
+% disp('For example, all temperature sensors are of the TMC type');
 
 dont_skip_sensor_type=1;
 sensor_type_temp='';
@@ -222,13 +236,13 @@ for j = 1:length(files)
                     if strcmp(same_sensors,'n')
                         not_accepted_value = 0;
                     else
-                    disp('Error. Unacceptable answer. Acceptable answers are: y or n');
+                        disp('Error. Unacceptable answer. Acceptable answers are: y or n');
                     end
                 end
              end
 
         end
-
+       
         % generate new data headers
         depths{1}='Timestamp';
 
@@ -238,10 +252,10 @@ for j = 1:length(files)
                 depths{i}={strcat('SnwD_',sensor_type_snow)};
             else
                 if ismember(i,temp_column_pos)
-                    if str2double(depths{i})>=0 && str2double(depths{i})<=0.01 && strcmp(project_abbrv,'Kskwm')
+                    if str2double(depths{i})>=0 && str2double(depths{i})<=0.01 && strcmp(project_abbrv,'CBOP')
                         depths{i}={strcat('Temp_',sensor_type_temp,'_surf')};
                     else
-                        if str2double(depths{i})>=0 && str2double(depths{i})<=0.03 && ~strcmp(project_abbrv,'Kskwm')
+                        if str2double(depths{i})>=0 && str2double(depths{i})<=0.03 && ~strcmp(project_abbrv,'CBOP')
                             depths{i}={strcat('Temp_',sensor_type_temp,'_surf')};
                         else
                             if str2double(depths{i})<=-1.2
@@ -258,32 +272,22 @@ for j = 1:length(files)
                 end
             end
         end
-
+        
         table_data_temp=[];
         for i=1:length(table_data)
             table_next=table_data{1,i};
             table_data_temp=[table_data_temp, table_next];
         end
-
+        
         table_data = [depths;table_data_temp];
 
+        % remove columns containing all NaNs
+        [table_data,~] = remove_nan_columns(table_data,files(j).name);
+        
         % modify file name to reflect the actual date range, also remove the
         % first and the last rows containing all NaNs
         [table_data,files(j).name] =...
             modify_file_name(table_data,date_start_line,files(j).name,date_position);
-
-        % remove columns containing all NaNs
-        [table_data,~] = remove_nan_columns(table_data,files(j).name);
-
-        % when exporting with UTF-8 encoding, the first character of the
-        % name is '', we need to get rid of it.
-        % To do this, I compare lengths of the name. isempty() or strcmp()
-        % do not work when comparing with '' obtained from data
-        for i=1:length(lookup_table)
-            if length(lookup_table{1,1})>name_length
-                lookup_table{i,1}(1)=[];
-            end
-        end
 
         new_site_code = lookup_site_name(files(j).name(1:name_length),lookup_table);
 
@@ -308,6 +312,7 @@ names_table=cell2table(names_list(1:end,1));
 writetable(names_table,fullfile(folder_modified,strcat(project_abbrv,'_FileNames_List.csv')),...
 'WriteVariableNames',false);
 
+diary off
 
 %% FYI: converting height string into number
 % number = str2double(string(10:16)), where 10:16 positions of the
