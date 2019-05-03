@@ -3,8 +3,26 @@ clc
 
 load('sites_flags_struct.mat');
 sites_flags_fn=fieldnames(sites_flags);
-old_codes_lookup_table = load_lookup_table('vdv_sites_old_code_lookup.csv');
-new_codes_lookup_table = load_lookup_table('VDV_GIPL_SiteCodes_Lookup_Table.csv');
+old_codes_lookup_table = load_lookup_table('vdv_site_old_codes_lookup.csv');
+new_codes_lookup_table = load_lookup_table('vdv_site_codes_lookup.csv');
+
+% load vatp heave table
+errmsg='';
+[fid,errmsg]=fopen('vatp_heave.csv','r','n','UTF-8');
+if fid>0
+    [vatp_heave,vatp_header,~]=read_table_data(fid,1);
+    fclose(fid);
+    vatp_heave=[vatp_header;vatp_heave];
+else
+    disp(' ');
+    disp(errmsg);
+end
+
+global length_dim;   % length dimension of a table (number of rows)
+length_dim=1;
+
+global width_dim;   % width dimension of a table (number of columns)
+width_dim=2;
 
 global header_start_line;
 
@@ -13,9 +31,6 @@ num_char_csv=4;
 num_char_day=3;  % number of chars in day
 num_chars_hwy=4; % number of chars in hour/week/year
 num_chars_month=5; % number of chars in month
-
-global length_dim;   % length dimension of a table (number of rows)
-length_dim=1;
 
 % If "sensors_used" flags are moved inside the j = 1:length(files) loop,
 % then question to include a specific measurement type into a dataset
@@ -95,43 +110,21 @@ filenames=[];
 
 for j = 1:length(files)
        
+    [old_site_code, averaging] = determine_old_site_code(files(j).name,old_codes_lookup_table);
+
+    if averaging == AveragingType.Raw
+        header_start_line=6; % header in raw data starts at line 6
+    else
+        header_start_line=7; % header in averaged data starts at line 7
+    end
+    
     errmsg='';
     [fid,errmsg]=fopen(fullfile(folder,files(j).name));
 
     if fid>0
 
-        [old_site_code, averaging] = determine_old_site_code(files(j).name,old_codes_lookup_table);
-        
-        if averaging == AveragingType.Raw
-            header_start_line=6; % header in raw data starts at line 6
-        else
-            header_start_line=7; % header in averaged data starts at line 7
-        end
-        
-        % read lines until get to the line with column header
-        for i=1:header_start_line
-            data_header = fgetl(fid);
-        end
-        data_header = strsplit(data_header,',');
-        num_columns = length(data_header);
-
-        % create a string to be used in textscan to read data
-        data_string = '%s';
-        for i=1:num_columns
-            data_string = strcat(data_string,' %s');
-        end
-
-        table_data = textscan(fid,data_string,'Delimiter',',');
-
-        fclose(fid);
-        
-        table_data_temp=[];
-        for i=1:length(table_data)
-            table_next=table_data{1,i};
-            table_data_temp=[table_data_temp, table_next];
-        end
-        
-        table_data_temp(:,end)=[];       
+        [table_data_temp,data_header,num_columns]= read_table_data(fid,header_start_line);
+        fclose(fid); 
         
         % Imnaviat site is different from all other sites. When the new MRC was
         % installed in 2017, variables from the old MRC were reused.
@@ -284,7 +277,7 @@ for j = 1:length(files)
             num_columns=num_columns-length(NaN_columns);
 
             % change headers
-            [table_data,flag_split_data]=modify_vdv_headers(old_site_code,table_data,num_columns,flags);
+            [table_data,flag_split_data]=modify_vdv_headers(old_site_code,table_data,num_columns,flags,vatp_heave);
 
             % split files if required
             if flag_split_data

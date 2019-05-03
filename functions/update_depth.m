@@ -1,5 +1,5 @@
 function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
-            install_depth,heave,heave_set,file_number)
+            install_depth,heave_table,heave,heave_set,file_number)
 %This function updates depth of MRC/THP probe using heave information
 %provided by a user
 %Input:
@@ -11,58 +11,60 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
 %Output:
 %depth - updated depth
     
-    % boil is always 1, interboil is always 2
-    if file_number==1 && ~strcmp(site_code,'IV4')
-        subcode='_boil';
-    else
-        if file_number==1 && strcmp(site_code,'IV4')
-            subcode='_North';
-        else
-            if file_number==2 && ~strcmp(site_code,'IV4')
-                subcode='_interboil';
-            else
-                if file_number==2 && strcmp(site_code,'IV4')
-                    subcode='_South';
-                else   
-                    if isnan(file_number)
-                        subcode='';
-                    end
-                end
-            end
-        end
-    end
+    global length_dim;
+    global width_dim;
+    heave_table_dim=size(heave_table);
     
-    prompt = ['For ',site_code,subcode,' enter heave in m measured in ',num2str(dataset_year-1),':\n'];
+    header_row=1;
+    site_code_column=1;
+    file_number_column=2;
+    year_column=3;
     
     if (~heave_set(HeaveSet.File1) && file_number==1) ||...
             (~heave_set(HeaveSet.File2) && file_number==2) ||...
             (~heave_set(HeaveSet.File3) && file_number==3) ||...
             (all(heave_set)==0 && isnan(file_number))
-        accepted_value = 0;
-        while ~accepted_value
-            disp(' ');
-            heave = input(prompt);
-            if heave >=-0.4 && heave <=1
-                accepted_value=1;
-                if file_number==1
-                    heave_set(HeaveSet.File1)=1;
-                else
-                    if file_number==2
-                        heave_set(HeaveSet.File2)=1;
-                    else
-                        if file_number==3
-                            heave_set(HeaveSet.File3)=1;
+           
+        % check year
+        % if no year, then ask user.
+        % if year, then check file number 
+        % if no data for the year and file number, ask user
+        
+        for i=heave_table_dim(width_dim):-1:year_column
+            if str2double(heave_table{header_row,i})==(dataset_year-1)
+                for j=(header_row+1):heave_table_dim(length_dim)
+                    if strcmp(site_code,heave_table{j,site_code_column})
+                        if ~isempty(heave_table{j,file_number_column})
+                            if str2double(heave_table{j,file_number_column})==file_number
+                                if ~isempty(heave_table{j,i})
+                                    heave=str2double(heave_table{j,i});
+                                    heave_set=modify_heave_flag(heave_set,file_number);
+                                    break;
+                                else
+                                    [heave,heave_set]=heave_user_input(site_code,file_number,dataset_year,heave_set);
+                                    break;
+                                end
+                            end
                         else
-                            if isnan(file_number)
-                                heave_set=[1,1,1];
+                            if ~isempty(heave_table{j,i})
+                                heave=str2double(heave_table{j,i});
+                                heave_set=modify_heave_flag(heave_set,file_number);
+                                break;
+                            else
+                                [heave,heave_set]=heave_user_input(site_code,file_number,dataset_year,heave_set);
+                                break;
                             end
                         end
                     end
                 end
+                break;
             else
-                disp('Error. Heave value should be between -0.3 to 1 meter\n');
+                if i==year_column && any(heave_set)==0
+                    heave=heave_user_input(site_code,file_number,dataset_year,heave_set);
+                end
             end
         end
+        
     end
 
     if strcmp(site_code,'DH1')

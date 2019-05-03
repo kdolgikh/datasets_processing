@@ -284,6 +284,13 @@ for j = 1:length(files)
         % remove columns containing all NaNs
         [table_data,~] = remove_nan_columns(table_data,files(j).name);
         
+%         % this code can be included if check dates consistency is required
+%         averaging = hobo_determine_averaging(files(j).name);
+%         
+%         if averaging == AveragingType.Day
+%             table_data=check_dates_consistency(table_data,averaging,files(j).name);
+%         end
+        
         % modify file name to reflect the actual date range, also remove the
         % first and the last rows containing all NaNs
         [table_data,files(j).name] =...
