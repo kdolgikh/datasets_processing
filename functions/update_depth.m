@@ -25,6 +25,27 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
             (~heave_set(HeaveSet.File3) && file_number==3) ||...
             (all(heave_set)==0 && isnan(file_number))
            
+        % boil is always 1, interboil is always 2
+        if file_number==1 && ~strcmp(site_code,'IV4')
+            subcode='_boil';
+        else
+            if file_number==1 && strcmp(site_code,'IV4')
+                subcode='_North';
+            else
+                if file_number==2 && ~strcmp(site_code,'IV4')
+                    subcode='_interboil';
+                else
+                    if file_number==2 && strcmp(site_code,'IV4')
+                        subcode='_South';
+                    else   
+                        if isnan(file_number)
+                            subcode='';
+                        end
+                    end
+                end
+            end
+        end
+        
         % check year
         % if no year, then ask user.
         % if year, then check file number 
@@ -41,7 +62,7 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
                                     heave_set=modify_heave_flag(heave_set,file_number);
                                     break;
                                 else
-                                    [heave,heave_set]=heave_user_input(site_code,file_number,dataset_year,heave_set);
+                                    [heave,heave_set]=heave_user_input(site_code,subcode,file_number,dataset_year,heave_set);
                                     break;
                                 end
                             end
@@ -51,7 +72,7 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
                                 heave_set=modify_heave_flag(heave_set,file_number);
                                 break;
                             else
-                                [heave,heave_set]=heave_user_input(site_code,file_number,dataset_year,heave_set);
+                                [heave,heave_set]=heave_user_input(site_code,subcode,file_number,dataset_year,heave_set);
                                 break;
                             end
                         end
@@ -60,10 +81,13 @@ function [depth,heave,heave_set] = update_depth(site_code,dataset_year,...
                 break;
             else
                 if i==year_column && any(heave_set)==0
-                    heave=heave_user_input(site_code,file_number,dataset_year,heave_set);
+                    heave=heave_user_input(site_code,subcode,file_number,dataset_year,heave_set);
                 end
             end
         end
+        
+        disp(' ');
+        disp(['For ',site_code,subcode,', heave value of ',num2str(heave),' m was used']);
         
     end
 
